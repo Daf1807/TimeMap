@@ -1,0 +1,245 @@
+        };
+
+        window.goToToday = () => {
+            selectedDate = getLocalISODate(new Date());
+            document.getElementById('datePicker').value = selectedDate;
+            dbDocRef = db.collection("chronos_final").doc(selectedDate);
+            loadFromFirebase();
+        };
+
+        // --- LOGIC ---
+        function updateTimeLoop() {
+            const now = new Date();
+            const nowStr = getLocalISODate(now);
+            document.getElementById('clock').innerText = now.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'});
+            if(selectedDate === nowStr) {
+                const h = now.getHours(); const m = now.getMinutes(); const globalMin = (h*60)+m;
+                document.querySelectorAll('.is-now').forEach(e => e.classList.remove('is-now'));
+                document.querySelectorAll('.hour-row').forEach(r => r.classList.remove('is-current'));
+                const block = Array.from(document.querySelectorAll('.block')).find(b => { const s = parseInt(b.dataset.start); const e = parseInt(b.dataset.end); return globalMin >= s && globalMin <= e; });
+                if(block) block.classList.add('is-now');
+                const row = document.getElementById(`hour-${h}`); if(row) row.classList.add('is-current');
+                if(isRunning && currentActivity) {
+                    if(!blocks[globalMin] || blocks[globalMin].catId !== currentActivity.catId) {
+                        updateBlock(globalMin, { catId: currentActivity.catId, name: currentActivity.name });
+                    }
+                }
+            }
+        }
+
+        function showToast(message) {
+            const x = document.getElementById("toast");
+            x.innerText = message;
+            x.className = "show";
+            setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+        }
+
+        function updateBlock(idx, data) {
+            blocks[idx] = data;
+            const block = Array.from(document.querySelectorAll('.block')).find(b => { const s = parseInt(b.dataset.start); const e = parseInt(b.dataset.end); return idx >= s && idx <= e; });
+            if(block) {
+                block.className = 'block';
+                if(data && data.catId) { const c = categories.find(x => x.id === data.catId); if(c) block.style.backgroundColor = c.color; else block.classList.add('bg-dead'); }
+                else block.classList.add('bg-dead');
+            }
+            saveToFirebase(); updateSummary();
+        }
+
+        window.startActivity = () => {
+            const n = document.getElementById('activityName').value.trim(); const t = document.getElementById('activityType').value;
+            if(!n) return alert("Escribe actividad"); currentActivity = { catId: t, name: n }; isRunning = true;
+            document.getElementById('btnStart').style.display = 'none'; document.getElementById('btnStop').style.display = 'flex';
+            document.getElementById('activityName').disabled = true; document.getElementById('activityType').disabled = true;
+        };
+        window.stopActivity = () => {
+            isRunning = false; currentActivity = null; document.getElementById('btnStart').style.display = 'flex'; document.getElementById('btnStop').style.display = 'none';
+            document.getElementById('activityName').disabled = false; document.getElementById('activityType').disabled = false; document.getElementById('activityName').value = '';
+        };
+        document.addEventListener('mouseup', () => { if(isSelecting) { isSelecting = false; if(document.querySelectorAll('.selected').length > 0) openEditModal(); } });
+        function startSelection(idx) { isSelecting = true; selectionStart = idx; updateSelectionVisual(idx); }
+        function updateSelectionVisual(curr) {
+            document.querySelectorAll('.selected').forEach(b => b.classList.remove('selected')); const start = Math.min(selectionStart, curr); const end = Math.max(selectionStart, curr);
+            for(let i=start; i<=end; i++) { const block = Array.from(document.querySelectorAll('.block')).find(b => { const s = parseInt(b.dataset.start); const e = parseInt(b.dataset.end); return i >= s && i <= e; }); if(block) block.classList.add('selected'); }
+        }
+        const modal = document.getElementById('editModal');
+        function openEditModal() {
+            const sel = document.querySelectorAll('.selected'); let total = 0; let firstData = null;
+            sel.forEach(el => { const s = parseInt(el.dataset.start); const e = parseInt(el.dataset.end); total += (e - s + 1); if(!firstData) firstData = blocks[s]; });
+            document.getElementById('selectedCount').innerText = total;
+            if(firstData && firstData.name) document.getElementById('editActivityName').value = firstData.name; else document.getElementById('editActivityName').value = "";
+            if(firstData && firstData.catId) document.getElementById('editActivityType').value = firstData.catId;
+            modal.style.display = 'flex';
+        }
+        window.closeModal = () => { modal.style.display = 'none'; document.querySelectorAll('.selected').forEach(b => b.classList.remove('selected')); };
+        
+        function saveToLog(startMin, endMin, name, catId) {
+            if(!name && !catId) return;
+            db.collection("activity_log").add({
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                date: selectedDate,
+                startMin: startMin,
+                endMin: endMin,
+                activityName: name,
+                catId: catId
+            }).catch(err => console.error("Error log:", err));
+        }
+
+        window.applyEdit = () => {
+            const catId = document.getElementById('editActivityType').value; 
+            const name = document.getElementById('editActivityName').value.trim();
+            const catName = categories.find(c=>c.id===catId)?.name || "Actividad";
+
+            showToast("Guardando...");
+
+            let minStart = 1440;
+            let maxEnd = 0;
+
+            document.querySelectorAll('.selected').forEach(el => {
+                const s = parseInt(el.dataset.start); 
+                const e = parseInt(el.dataset.end);
+                
+                if(s < minStart) minStart = s;
+                if(e > maxEnd) maxEnd = e;
+
+                for(let k=s; k<=e; k++) { 
+                    if(catId === 'dead') {
+                        blocks[k] = null;
+                    } else {
+                        blocks[k] = { catId: catId, name: name || catName }; 
+                    }
+                    const block = document.querySelector(`.block[data-start="${k}"]`);
+                    if(block) {
+                        block.className = 'block';
+                        if(catId !== 'dead' && blocks[k]) {
+                            const c = categories.find(x => x.id === catId); 
+                            if(c) block.style.backgroundColor = c.color; 
+                            else block.classList.add('bg-dead');
+                        } else {
+                            block.classList.add('bg-dead');
+                        }
+                    }
+                }
+            });
+
+            saveToFirebase();
+            updateSummary();
+            
+            if(catId !== 'dead') {
+                saveToLog(minStart, maxEnd, name || catName, catId);
+            }
+
+            closeModal();
+            setTimeout(() => showToast("¡Guardado!"), 500);
+        };
+
+        function showTooltip(e, s) {
+            const data = blocks[s]; const h = Math.floor(s/60); const m = s%60; const timeStr = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+            let txt = `<strong>${timeStr}</strong>`;
+            if(data && data.catId) { const displayName = data.name || (categories.find(c => c.id === data.catId)?.name); if(displayName) txt += `<br>${displayName}`; }
+            const tt = document.getElementById('tooltip'); tt.innerHTML = txt; tt.style.display = 'block'; tt.style.left = (e.pageX + 10) + 'px'; tt.style.top = (e.pageY + 10) + 'px';
+        }
+        function hideTooltip() { document.getElementById('tooltip').style.display = 'none'; }
+        function updateSummary() {
+            const counts = {}; let active = 0;
+            blocks.forEach(b => { if(b && b.catId) { counts[b.catId] = (counts[b.catId]||0)+1; active++; } });
+            const container = document.getElementById('summary'); container.innerHTML = '';
+            Object.keys(counts).forEach(catId => {
+                const cat = categories.find(c => c.id === catId);
+                if(cat) {
+                    const pct = Math.round((counts[catId] / TOTAL_MINUTES) * 100);
+                    container.innerHTML += `
+                        <div class="stat-card">
+                            <div class="stat-header"><span><span class="color-dot" style="background:${cat.color}"></span>${cat.name}</span><b>${counts[catId]}m</b></div>
+                            <div class="progress-bg"><div class="progress-fill" style="width:${pct}%; background:${cat.color}"></div></div>
+                        </div>`;
+                }
+            });
+            const dead = TOTAL_MINUTES - active; container.innerHTML += `<div class="stat-card"><div class="stat-header"><span>Libre</span><b>${dead}m</b></div></div>`;
+        }
+
+        // --- HISTORIAL ---
+        window.openHistoryModal = () => {
+            document.getElementById('historyModal').style.display = 'flex';
+            const listBody = document.getElementById('historyListBody');
+            listBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Cargando...</td></tr>';
+
+            db.collection('activity_log')
+            .orderBy('timestamp', 'desc')
+            .limit(20)
+            .get()
+            .then(snapshot => {
+                listBody.innerHTML = '';
+                if(snapshot.empty) {
+                    listBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Sin registros.</td></tr>';
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const startH = Math.floor(data.startMin / 60);
+                    const startM = data.startMin % 60;
+                    const endH = Math.floor(data.endMin / 60);
+                    const endM = data.endMin % 60;
+                    const timeStr = `${String(startH).padStart(2,'0')}:${String(startM).padStart(2,'0')} - ${String(endH).padStart(2,'0')}:${String(endM).padStart(2,'0')}`;
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${data.date}</td>
+                        <td>${timeStr}</td>
+                        <td><strong>${data.activityName || '-'}</strong></td>
+                        <td>
+                            <button class="action-btn btn-edit" onclick="editFromHistory('${data.date}', ${data.startMin}, ${data.endMin})">Editar</button>
+                            <button class="action-btn btn-del" onclick="deleteHistoryLog('${doc.id}')">X</button>
+                        </td>
+                    `;
+                    listBody.appendChild(row);
+                });
+            }).catch(err => {
+                listBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Error</td></tr>';
+            });
+        };
+
+        window.deleteHistoryLog = (docId) => {
+            if(confirm("¿Borrar registro?")) {
+                db.collection('activity_log').doc(docId).delete().then(() => openHistoryModal());
+            }
+        };
+
+        window.editFromHistory = (dateStr, sMin, eMin) => {
+            document.getElementById('historyModal').style.display = 'none';
+            selectedDate = dateStr;
+            document.getElementById('datePicker').value = selectedDate;
+            dbDocRef = db.collection("chronos_final").doc(selectedDate);
+            triggerFlash();
+            loadFromFirebaseAndSelect(sMin, eMin);
+        };
+
+        function loadFromFirebaseAndSelect(targetStart, targetEnd) {
+            if(unsubscribe) unsubscribe(); 
+            forceClearScreen();
+            blocks = new Array(TOTAL_MINUTES).fill(null);
+            
+            // Carga estática para viajar en el tiempo
+            dbDocRef.get().then(d => {
+                if(d.exists() && d.data().blocks) blocks = d.data().blocks;
+                renderGridColors(); updateSummary();
+                selectRangeAndOpen(targetStart, targetEnd);
+                
+                // Si la fecha a la que viajamos es HOY, reactivar relojito
+                const todayStr = getLocalISODate(new Date());
+                if(selectedDate === todayStr) startClockListener();
+            });
+        }
+
+        function selectRangeAndOpen(s, e) {
+            document.querySelectorAll('.block').forEach(b => {
+                const bS = parseInt(b.dataset.start);
+                const bE = parseInt(b.dataset.end);
+                if(bS >= s && bE <= e) b.classList.add('selected');
+            });
+            openEditModal();
+        }
+
+        init();
+    </script>
+</body>
+</html>
