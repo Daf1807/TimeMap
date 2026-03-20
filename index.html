@@ -1,3 +1,542 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cronos Day - Modo Libro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase Compat -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        /* --- TUS ESTILOS ORIGINALES --- */
+        :root {
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --glass-bg: #ffffff;
+            --text-main: #2d3436;
+            --text-light: #636e72;
+            --primary: #6c5ce7;
+            --border-radius: 12px;
+            --success: #00b894;
+            --danger: #d63031;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            margin: 0;
+            padding: 10px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .app-container {
+            background: var(--glass-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+            padding: 15px;
+            position: relative;
+        }
+
+        /* FLASH EFECT BLANCO PURO (Limpieza Visual) */
+        .flash-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; opacity: 0; pointer-events: none; z-index: 50;
+            transition: opacity 0.1s ease-out;
+        }
+        .flash-active { opacity: 1; }
+
+        /* --- HEADER --- */
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid #eee; padding-bottom: 10px;
+        }
+        .title-group h1 { margin: 0; font-size: 1.2rem; color: var(--primary); }
+        .title-group p { margin: 0; font-size: 0.75rem; color: var(--text-light); }
+        
+        .top-controls { display: flex; gap: 8px; align-items: center; }
+        
+        button.icon-btn {
+            background: #f1f2f6; border: none; border-radius: 50%;
+            width: 36px; height: 36px; font-size: 1.1rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; color: #555;
+        }
+        input[type="date"] {
+            border: 1px solid #ddd; padding: 5px 10px; border-radius: 8px;
+            font-family: inherit; font-size: 0.9rem; color: var(--text-main);
+        }
+
+        /* --- CHECKLIST --- */
+        .checklist-section {
+            background: #fffaf0; border: 1px solid #ffeaa7;
+            border-radius: 10px; padding: 10px; margin-bottom: 15px;
+        }
+        .checklist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .checklist-header h3 { margin: 0; font-size: 0.9rem; color: #d35400; }
+        .checklist-input-group { display: flex; gap: 5px; margin-bottom: 8px; }
+        .checklist-input { flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.85rem; }
+        .add-todo-btn { background: #d35400; color: white; border: none; padding: 0 10px; border-radius: 5px; cursor: pointer; }
+        .todo-list { list-style: none; padding: 0; margin: 0; max-height: 100px; overflow-y: auto; }
+        .todo-item { display: flex; align-items: center; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 0.85rem; }
+        .todo-item span { flex: 1; margin-left: 8px; }
+        .todo-item.completed span { text-decoration: line-through; color: #aaa; }
+        .delete-todo { color: #ff7675; cursor: pointer; margin-left: 10px; }
+
+        /* --- CONTROLS --- */
+        .controls-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; background: #f8f9fa; padding: 10px; border-radius: 10px; margin-bottom: 10px; }
+        .input-group { display: flex; flex-direction: column; gap: 2px; position: relative; }
+        label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: #aaa; }
+        input[type="text"], select { padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem; font-family: inherit; outline: none; width: 100%; }
+        .btn-fav { position: absolute; right: 5px; top: 22px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #ddd; z-index: 2; }
+        .btn-fav.active { color: #fdcb6e; }
+        .btn { padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; color: white; font-size: 0.9rem; height: 38px; width: 100%; }
+        .btn-start { background: var(--primary); }
+        .btn-stop { background: #ff7675; display: none; }
+
+        /* --- FAVORITOS --- */
+        .favorites-bar { display: flex; gap: 8px; overflow-x: auto; padding: 5px 0; margin-bottom: 15px; min-height: 40px; scrollbar-width: none; }
+        .favorites-bar::-webkit-scrollbar { display: none; }
+        .chip { background: #fff; border: 1px solid #eee; padding: 5px 12px; border-radius: 15px; font-size: 0.8rem; white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee; flex-shrink: 0; }
+        .chip-color { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .chip-close { font-size: 0.9rem; color: #ccc; margin-left: 5px; }
+
+        /* --- VIEW & ZOOM --- */
+        .view-controls { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; background: #fff; padding: 5px 10px; border-radius: 20px; border: 1px solid #eee; }
+        .toggle-switch { display: flex; background: #f0f0f0; border-radius: 15px; padding: 2px; }
+        .toggle-option { padding: 4px 10px; border-radius: 13px; font-size: 0.75rem; font-weight: 600; cursor: pointer; color: #777; }
+        .toggle-option.active { background: white; color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .zoom-slider { flex-grow: 1; max-width: 100px; }
+
+        /* --- TIMELINE --- */
+        .timeline-scroll-area { overflow-x: hidden; overflow-y: auto; border-radius: 10px; background: #fff; border: 1px solid #eee; height: 400px; }
+        .timeline-scroll-area::-webkit-scrollbar { width: 6px; }
+        .timeline-scroll-area::-webkit-scrollbar-thumb { background: #ddd; border-radius: 3px; }
+        .timeline-wrapper { display: flex; flex-direction: column; width: 100%; }
+        .hour-row { display: flex; height: 45px; border-bottom: 1px solid #f1f2f6; width: 100%; }
+        .hour-label { width: 35px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #f9f9f9; border-right: 1px solid #e0e0e0; font-weight: 700; color: #636e72; font-size: 0.75rem; flex-shrink: 0; }
+        .hour-label span { display: none; }
+        .hour-row.is-current .hour-label { background: var(--primary); color: white; }
+        .minutes-container { display: flex; flex: 1; height: 100%; }
+        .view-1min .minutes-container { overflow-x: auto; }
+        .view-1min .block { min-width: 15px; flex-shrink: 0; }
+        .view-1min .hour-row { overflow: visible; }
+        .view-1min .timeline-scroll-area { overflow-x: auto; }
+        .view-10min .block { flex: 1; border-right: 1px solid rgba(255,255,255,0.5); transition: background 0.2s; }
+        .block { height: 100%; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: rgba(0,0,0,0.3); }
+        .block:hover { filter: brightness(0.9); z-index: 2; }
+        .block.selected { outline: 2px solid #2d3436; outline-offset: -2px; z-index: 10; }
+        .block.is-now { box-shadow: inset 0 0 0 2px #d63031; z-index: 5; }
+        .block.is-now::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 6px; height: 6px; background: #d63031; border-radius: 50%; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(214, 48, 49, 0.7); } 70% { box-shadow: 0 0 0 6px rgba(214, 48, 49, 0); } 100% { box-shadow: 0 0 0 0 rgba(214, 48, 49, 0); } }
+        .bg-dead { background-color: #f1f2f6; border-right: 1px solid #e0e0e0 !important; }
+
+        /* --- TOAST --- */
+        #toast {
+            visibility: hidden; min-width: 250px; background-color: #333; color: #fff;
+            text-align: center; border-radius: 4px; padding: 12px; position: fixed;
+            z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%);
+            font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+
+        /* --- RESUMEN --- */
+        .summary { margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; }
+        .stat-card { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 0.8rem; display: flex; flex-direction: column; gap: 5px; }
+        .stat-header { display: flex; justify-content: space-between; align-items: center; }
+        .color-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .progress-bg { height: 4px; background: #f0f0f0; border-radius: 2px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 2px; transition: width 0.5s; }
+
+        /* --- MODALS --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal { background: white; padding: 20px; border-radius: 15px; width: 90%; max-width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: slideUp 0.3s ease; max-height: 85vh; overflow-y: auto; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .history-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 10px; }
+        .history-table th { text-align: left; padding: 8px; border-bottom: 2px solid #eee; color: #666; }
+        .history-table td { padding: 8px; border-bottom: 1px solid #eee; vertical-align: middle; }
+        .action-btn { padding: 4px 8px; border-radius: 4px; border: none; cursor: pointer; font-size: 0.75rem; margin-right: 5px; color: white; }
+        .btn-edit { background: var(--primary); }
+        .btn-del { background: var(--danger); }
+
+        @media (max-width: 768px) {
+            .app-container { padding: 10px; border-radius: 0; min-height: 100vh; box-shadow: none; max-width: 100%; }
+            body { padding: 0; background: white; }
+            header { justify-content: space-between; }
+            .title-group { text-align: left; }
+            .timeline-scroll-area { width: 100%; } 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- CAPA BLANCA PARA LIMPIEZA VISUAL INSTANTÁNEA -->
+        <div id="flashLayer" class="flash-overlay"></div>
+
+        <header>
+            <div class="title-group">
+                <h1>Cronos Day</h1>
+                <p>Libro de Actividades</p>
+            </div>
+            <div class="top-controls">
+                <button class="icon-btn" onclick="changeDate(-1)">❮</button>
+                <input type="date" id="datePicker">
+                <button class="icon-btn" onclick="changeDate(1)">❯</button>
+                <button class="icon-btn" onclick="goToToday()">📍</button>
+                <button class="icon-btn" onclick="openHistoryModal()" style="background:var(--text-main); color:white;">📜</button>
+                <button class="icon-btn" onclick="openCatModal()" style="background:#ffeaa7; color: #d63031;">⚙️</button>
+            </div>
+        </header>
+
+        <!-- LISTA DE TAREAS -->
+        <div class="checklist-section">
+            <div class="checklist-header"><h3>📋 Lista del Día</h3></div>
+            <div class="checklist-input-group">
+                <input type="text" id="newTodoInput" class="checklist-input" placeholder="Nueva tarea...">
+                <button class="add-todo-btn" onclick="addTodo()">+</button>
+            </div>
+            <ul class="todo-list" id="todoList"></ul>
+        </div>
+
+        <!-- Controles Principales -->
+        <div class="controls-grid">
+            <div class="input-group">
+                <label>Actividad</label>
+                <input type="text" id="activityName" placeholder="¿Qué haces?">
+                <button class="btn-fav" id="btnAddFav" onclick="toggleFavorite()">☆</button>
+            </div>
+            <div class="input-group">
+                <label>Categoría</label>
+                <select id="activityType"></select>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:5px;">
+                <button id="btnStart" class="btn btn-start" onclick="startActivity()">▶</button>
+                <button id="btnStop" class="btn btn-stop" onclick="stopActivity()">⏹</button>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:flex-end; justify-content:center;">
+                <span id="clock" style="font-size:0.9rem; font-weight:bold; color:var(--primary);">00:00</span>
+            </div>
+        </div>
+
+        <div class="favorites-bar" id="favoritesBar"></div>
+
+        <div class="view-controls">
+            <div class="toggle-switch">
+                <div class="toggle-option active" id="opt10m" onclick="setViewMode(10)">10 min</div>
+                <div class="toggle-option" id="opt1m" onclick="setViewMode(1)">1 min</div>
+            </div>
+            <input type="range" min="200" max="1200" value="500" class="zoom-slider" id="zoomSlider">
+        </div>
+
+        <div class="timeline-scroll-area">
+            <div class="timeline-wrapper" id="timelineWrapper"></div>
+        </div>
+
+        <div class="summary" id="summary"></div>
+    </div>
+
+    <div id="toast">Guardando datos...</div>
+
+    <!-- Modal Edición -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <h3 style="margin-top:0;">Editar Periodo</h3>
+            <p>Seleccionados: <b id="selectedCount">0</b> minutos.</p>
+            <div class="input-group" style="margin: 15px 0;">
+                <label>Nombre de Actividad</label>
+                <input type="text" id="editActivityName" placeholder="Ej: Leer...">
+            </div>
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>Categoría</label>
+                <select id="editActivityType"></select>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn" style="background:#f1f2f6; color:#636e72;" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-start" onclick="applyEdit()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Categorías -->
+    <div class="modal-overlay" id="catModal">
+        <div class="modal">
+            <h3 style="margin-top:0; color:var(--primary);">Categorías</h3>
+            <div id="catList" style="margin-top:15px; max-height:200px; overflow-y:auto;"></div>
+            <div style="display:flex; gap:10px; margin-top:15px; border-top:1px solid #eee; padding-top:15px;">
+                <input type="text" id="newCatName" placeholder="Nombre" style="flex:1;">
+                <input type="color" id="newCatColor" value="#a8e6cf" style="width:40px; height:35px; border:none; border-radius:6px;">
+                <button class="btn btn-start" onclick="addCategory()">+</button>
+            </div>
+            <button class="btn" style="width:100%; margin-top:15px; background:#636e72;" onclick="closeCatModal()">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- Modal Historial -->
+    <div class="modal-overlay" id="historyModal">
+        <div class="modal" style="max-width: 500px;">
+            <h3 style="margin-top:0; color:var(--text-main);">📜 Historial</h3>
+            <p style="font-size:0.8rem; color:#666; margin-bottom:10px;">Últimas actividades.</p>
+            <table class="history-table">
+                <thead><tr><th>Fecha</th><th>Hora</th><th>Actividad</th><th>Acción</th></tr></thead>
+                <tbody id="historyListBody"></tbody>
+            </table>
+            <button class="btn" style="width:100%; margin-top:20px; background:#636e72;" onclick="document.getElementById('historyModal').style.display='none'">Cerrar</button>
+        </div>
+    </div>
+
+    <div id="tooltip"></div>
+
+    <script>
+        // --- FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCob0gJM97c9RsWGm3UglbyMHChD5RHM1k", authDomain: "sistema-40a4f.firebaseapp.com",
+            projectId: "sistema-40a4f", storageBucket: "sistema-40a4f.firebasestorage.app",
+            messagingSenderId: "907198670936", appId: "1:907198670936:web:26d61badc092c89c74022d",
+            measurementId: "G-SVPM9JX87D"
+        };
+        try { if (!firebase.apps.length) firebase.initializeApp(firebaseConfig); } catch (e) {}
+        const db = firebase.firestore();
+
+        function getLocalISODate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // --- ESTADO ---
+        const TOTAL_MINUTES = 1440;
+        const START_HOUR = 0; 
+        
+        let blocks = new Array(TOTAL_MINUTES).fill(null);
+        let selectedDate = getLocalISODate(new Date());
+        let dbDocRef = null;
+        let unsubscribe = null; // Solo para el relojito hoy
+        let isRunning = false;
+        let currentActivity = null;
+        let selectionStart = null;
+        let isSelecting = false;
+        let viewStep = 10;
+
+        // --- CHECKLIST ---
+        let todos = JSON.parse(localStorage.getItem('chronos_todos')) || [];
+        function saveTodos() { localStorage.setItem('chronos_todos', JSON.stringify(todos)); renderTodos(); }
+        function renderTodos() {
+            const list = document.getElementById('todoList'); list.innerHTML = '';
+            todos.forEach((todo, idx) => {
+                const li = document.createElement('li'); li.className = `todo-item ${todo.done ? 'completed' : ''}`;
+                li.innerHTML = `<input type="checkbox" ${todo.done ? 'checked' : ''} onchange="toggleTodo(${idx})"><span>${todo.text}</span><span class="delete-todo" onclick="deleteTodo(${idx})">×</span>`;
+                list.appendChild(li);
+            });
+        }
+        window.addTodo = () => { const input = document.getElementById('newTodoInput'); const text = input.value.trim(); if(!text) return; todos.push({ text: text, done: false }); input.value = ''; saveTodos(); };
+        window.toggleTodo = (idx) => { todos[idx].done = !todos[idx].done; saveTodos(); };
+        window.deleteTodo = (idx) => { todos.splice(idx, 1); saveTodos(); };
+
+        // --- FAVORITOS ---
+        let favorites = JSON.parse(localStorage.getItem('chronos_favorites')) || [];
+        function saveFavorites() { localStorage.setItem('chronos_favorites', JSON.stringify(favorites)); renderFavorites(); }
+        function renderFavorites() {
+            const bar = document.getElementById('favoritesBar'); bar.innerHTML = '';
+            if(favorites.length === 0) { bar.innerHTML = '<div style="font-size:0.75rem; color:#aaa; display:flex; align-items:center;">Sin favoritos</div>'; return; }
+            favorites.forEach((fav, idx) => {
+                const cat = categories.find(c => c.id === fav.catId); const color = cat ? cat.color : '#ccc';
+                const chip = document.createElement('div'); chip.className = 'chip';
+                chip.innerHTML = `<div class="chip-color" style="background:${color}"></div><span>${fav.name}</span><span class="chip-close" onclick="event.stopPropagation(); removeFavorite(${idx})">×</span>`;
+                chip.onclick = () => selectFavorite(fav); bar.appendChild(chip);
+            });
+        }
+        window.toggleFavorite = function() {
+            const name = document.getElementById('activityName').value.trim(); const catId = document.getElementById('activityType').value;
+            if(!name) return; if(favorites.find(f => f.name.toLowerCase() === name.toLowerCase())) return alert("Ya existe");
+            favorites.push({ name, catId }); saveFavorites(); document.getElementById('btnAddFav').classList.add('active');
+        };
+        window.removeFavorite = (idx) => { favorites.splice(idx, 1); saveFavorites(); };
+        function selectFavorite(fav) { document.getElementById('activityName').value = fav.name; document.getElementById('activityType').value = fav.catId; };
+
+        // --- CATEGORÍAS ---
+        const defaultCats = [
+            { id: 'prod', name: 'Productivo', color: '#a8e6cf' }, { id: 'est', name: 'Estudio', color: '#dcedc1' }, 
+            { id: 'sal', name: 'Salud', color: '#ffaaa5' }, { id: 'oci', name: 'Ocio', color: '#ffd3b6' }, { id: 'otr', name: 'Otro', color: '#d291bc' }         
+        ];
+        let categories = JSON.parse(localStorage.getItem('chronos_categories')) || defaultCats;
+        function saveCategories() { localStorage.setItem('chronos_categories', JSON.stringify(categories)); renderCategorySelects(); renderCategoryList(); renderFavorites(); renderGridColors(); }
+        function renderCategorySelects() {
+            const selects = [document.getElementById('activityType'), document.getElementById('editActivityType')];
+            selects.forEach(sel => { sel.innerHTML = ''; categories.forEach(cat => { const opt = document.createElement('option'); opt.value = cat.id; opt.innerText = cat.name; sel.appendChild(opt); }); });
+        }
+        function renderCategoryList() {
+            const list = document.getElementById('catList'); list.innerHTML = '';
+            categories.forEach((cat, idx) => {
+                const div = document.createElement('div'); div.style.cssText = "display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;";
+                div.innerHTML = `<span style="display:flex;align-items:center;gap:8px;"><div style="width:15px;height:15px;background:${cat.color};border-radius:3px;"></div>${cat.name}</span><button onclick="deleteCat(${idx})" style="color:red;border:none;background:none;cursor:pointer;">×</button>`;
+                list.appendChild(div);
+            });
+        }
+        window.deleteCat = (i) => { categories.splice(i, 1); saveCategories(); };
+        window.addCategory = () => {
+            const n = document.getElementById('newCatName').value.trim(); const c = document.getElementById('newCatColor').value;
+            if(!n) return; categories.push({ id: 'c_'+Date.now(), name: n, color: c }); document.getElementById('newCatName').value = ''; saveCategories();
+        };
+        window.openCatModal = () => document.getElementById('catModal').style.display = 'flex';
+        window.closeCatModal = () => document.getElementById('catModal').style.display = 'none';
+
+        // --- GRID & VIEW ---
+        const timelineWrapper = document.getElementById('timelineWrapper');
+        function init() {
+            renderCategorySelects(); renderCategoryList(); renderFavorites(); renderTodos();
+            document.getElementById('datePicker').value = selectedDate;
+            createGridStructure(); 
+            loadFromFirebase(); // Carga inicial
+            setInterval(updateTimeLoop, 1000); updateTimeLoop();
+            document.getElementById('zoomSlider').addEventListener('input', (e) => {
+                const width = e.target.value; const containers = document.querySelectorAll('.minutes-container');
+                containers.forEach(c => c.style.minWidth = width + 'px');
+            });
+        }
+        window.setViewMode = function(step) {
+            viewStep = step; document.getElementById('opt1m').classList.toggle('active', step === 1);
+            document.getElementById('opt10m').classList.toggle('active', step === 10);
+            timelineWrapper.classList.toggle('view-10min', step === 10); timelineWrapper.classList.toggle('view-1min', step === 1); createGridStructure();
+        };
+        function createGridStructure() {
+            timelineWrapper.innerHTML = ''; const hoursOrder = [];
+            for(let i=0; i<24; i++) hoursOrder.push((START_HOUR + i) % 24);
+            hoursOrder.forEach(hour => {
+                const row = document.createElement('div'); row.className = 'hour-row'; row.id = `hour-${hour}`;
+                const label = document.createElement('div'); label.className = 'hour-label'; label.innerText = String(hour).padStart(2,'0'); row.appendChild(label);
+                const minContainer = document.createElement('div'); minContainer.className = 'minutes-container';
+                const totalBlocks = (viewStep === 1) ? 60 : 6;
+                for(let i=0; i<totalBlocks; i++) {
+                    const realStart = (hour * 60) + (i * viewStep); const block = document.createElement('div');
+                    block.className = 'block bg-dead'; block.dataset.start = realStart; block.dataset.end = realStart + (viewStep - 1);
+                    block.addEventListener('mouseenter', (e) => showTooltip(e, realStart)); block.addEventListener('mouseleave', hideTooltip);
+                    block.addEventListener('mousedown', () => startSelection(realStart)); block.addEventListener('mouseenter', () => { if(isSelecting) updateSelectionVisual(realStart); });
+                    minContainer.appendChild(block);
+                }
+                row.appendChild(minContainer); timelineWrapper.appendChild(row);
+            });
+            renderGridColors(); const width = document.getElementById('zoomSlider').value;
+            document.querySelectorAll('.minutes-container').forEach(c => c.style.minWidth = width + 'px');
+        }
+        function renderGridColors() {
+            document.querySelectorAll('.block').forEach(block => {
+                const s = parseInt(block.dataset.start); const e = parseInt(block.dataset.end); let color = null;
+                for(let k=s; k<=e; k++) { if(blocks[k] && blocks[k].catId) { const cat = categories.find(c => c.id === blocks[k].catId); if(cat) { color = cat.color; break; } } }
+                block.className = 'block'; if(color) block.style.backgroundColor = color; else block.classList.add('bg-dead');
+            });
+        }
+
+        function forceClearScreen() {
+            // Limpieza profunda del DOM para asegurar que no queden colores visuales
+            document.querySelectorAll('.block').forEach(b => {
+                b.style.backgroundColor = '';
+                b.className = 'block bg-dead';
+            });
+            document.querySelectorAll('.is-now').forEach(e => e.classList.remove('is-now'));
+            document.querySelectorAll('.hour-row').forEach(r => r.classList.remove('is-current'));
+        }
+        
+        function triggerFlash() {
+            const flash = document.getElementById('flashLayer');
+            flash.classList.add('flash-active');
+            setTimeout(() => flash.classList.remove('flash-active'), 150); // Flash rápido pero visible
+        }
+
+        // --- SISTEMA DE CARGA HÍBRIDO (PÁGINA ESTÁTICA) ---
+        function loadFromFirebase() {
+            // 1. Efecto visual de "Nueva Página"
+            triggerFlash();
+
+            // 2. Limpiar memoria y pantalla inmediatamente
+            forceClearScreen();
+            blocks = new Array(TOTAL_MINUTES).fill(null);
+
+            // 3. Referencia
+            dbDocRef = db.collection("chronos_final").doc(selectedDate);
+
+            const todayStr = getLocalISODate(new Date());
+            const isToday = (selectedDate === todayStr);
+
+            // 4. CARGA ESTÁTICA (GET) para la información de la página
+            // Esto evita el parpadeo de sincronización constante
+            dbDocRef.get().then(doc => {
+                if(doc.exists() && doc.data().blocks) {
+                    // Clonar datos para evitar referencias
+                    blocks = [...doc.data().blocks];
+                    console.log(`Página cargada: ${selectedDate}`);
+                } else {
+                    console.log(`Página nueva: ${selectedDate}`);
+                }
+                
+                // 5. Renderizar la información estática
+                renderGridColors(); 
+                updateSummary();
+
+                // 6. SOLO si es Hoy, iniciamos el relojito en vivo
+                if(isToday) {
+                    startClockListener();
+                } else {
+                    stopClockListener();
+                }
+
+            }).catch(err => {
+                console.error("Error cargando:", err);
+            });
+        }
+
+        // Funciones separadas para el relojito (Solo hoy)
+        function startClockListener() {
+            if(unsubscribe) unsubscribe(); // Evitar duplicados
+            unsubscribe = dbDocRef.onSnapshot(d => {
+                // El relojito solo actualiza si cambian datos, pero no redibuja todo todo el rato
+                if(d.exists() && d.data().blocks) {
+                    blocks = [...d.data().blocks];
+                    renderGridColors(); 
+                    updateSummary(); // Actualizar resumen si alguien más edita esta fecha hoy
+                }
+            });
+        }
+
+        function stopClockListener() {
+            if(unsubscribe) {
+                unsubscribe();
+                unsubscribe = null;
+            }
+        }
+
+        function saveToFirebase() {
+            if(!dbDocRef) return;
+            dbDocRef.set({ blocks, lastUpdated: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+        }
+
+        // --- MANEJO DE FECHAS ---
+        document.getElementById('datePicker').addEventListener('change', (e) => {
+            selectedDate = e.target.value;
+            dbDocRef = db.collection("chronos_final").doc(selectedDate);
+            loadFromFirebase(); // Recargar página estática
+        });
+
+        window.changeDate = (d) => {
+            const [y, m, day] = selectedDate.split('-').map(Number);
+            const dateObj = new Date(y, m - 1, day);
+            dateObj.setDate(dateObj.getDate() + d);
+            selectedDate = getLocalISODate(dateObj);
+            document.getElementById('datePicker').value = selectedDate;
+            dbDocRef = db.collection("chronos_final").doc(selectedDate);
+            loadFromFirebase();
         };
 
         window.goToToday = () => {
