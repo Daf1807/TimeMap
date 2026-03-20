@@ -3,25 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cronos Day - Passionate Mode</title>
+    <title>Cronos Day - Passionate Mode (Fixed v2)</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
         :root {
-            /* PALETA INTENSA Y APASIONADA */
+            /* PALETA INTENSA */
             --bg-gradient: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-            --primary: #ff007f; /* Rosa Neón Intenso - Pasión */
+            --primary: #ff007f; 
             --primary-glow: rgba(255, 0, 127, 0.6);
-            --card-bg: rgba(30, 30, 45, 0.65); /* Cristal Oscuro */
+            --card-bg: rgba(30, 30, 45, 0.7);
             --card-border: rgba(255, 255, 255, 0.1);
             --text: #ffffff;
             --text-muted: #aab2bd;
-            --danger: #ff2e63; /* Rojo Neón */
+            --danger: #ff2e63;
             --warning: #fce38a;
             --success: #00f260;
-            
             --block-empty: #2b2b40;
             --selection-color: rgba(255, 0, 127, 0.4);
         }
@@ -31,19 +31,19 @@
         body { 
             margin: 0; 
             background: var(--bg-gradient); 
-            background-attachment: fixed; /* Fondo fijo con efecto de profundidad */
+            background-attachment: fixed;
             color: var(--text); 
             padding: 10px 10px 110px 10px; 
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        /* SCROLLBAR PERSONALIZADO */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
         ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
 
         /* HEADER */
-        .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 0 5px; flex-wrap: wrap; gap: 10px; }
+        .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 0 5px; flex-wrap: wrap; gap: 10px; position: relative; z-index: 10; }
         .app-title h1 { 
             margin: 0; 
             font-size: 1.6rem; 
@@ -66,13 +66,15 @@
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; 
             transition: all 0.3s;
+            font-size: 1.1rem;
         }
         .icon-btn:hover { background: var(--primary); box-shadow: 0 0 15px var(--primary-glow); transform: translateY(-2px); }
+        .icon-btn:active { transform: scale(0.95); }
 
-        /* CONTENEDOR PRINCIPAL */
-        #mainContainer { width: 100%; max-width: 100%; display: flex; flex-direction: column; gap: 20px; }
+        /* CONTENEDOR */
+        #mainContainer { width: 100%; max-width: 100%; display: flex; flex-direction: column; gap: 20px; position: relative; z-index: 1; }
 
-        /* SECCIÓN CUENTA REGRESIVA (HUD ESTILO) */
+        /* SECCIÓN CUENTA REGRESIVA */
         .countdown-section { 
             background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(20,20,30,0.8));
             border: 1px solid var(--card-border);
@@ -92,12 +94,11 @@
             transition: 0.3s;
         }
         
-        /* ESTILO URGENTE INTENSO */
+        /* ESTILO URGENTE (SIN MOVIMIENTO, SOLO BRILLO) */
         .cd-card.urgent-red { 
             border-left-color: var(--danger); 
             background: linear-gradient(90deg, rgba(255, 46, 99, 0.15), transparent);
-            box-shadow: inset 10px 0 20px -10px rgba(255, 46, 99, 0.3);
-            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite alternate;
+            box-shadow: inset 10px 0 20px -10px rgba(255, 46, 99, 0.4);
         }
         
         .cd-card.urgent-red .cd-time { 
@@ -105,23 +106,22 @@
             font-weight: 800; 
             font-size: 1.3rem; 
             font-family: 'Courier New', monospace; 
-            text-shadow: 0 0 10px var(--danger);
+            text-shadow: 0 0 10px var(--danger); /* Brillo estático */
         }
 
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
+        .cd-card.urgent-orange { 
+            border-left-color: var(--warning); 
+            background: linear-gradient(90deg, rgba(252, 227, 138, 0.1), transparent);
         }
 
         .cd-info { display: flex; flex-direction: column; }
-        .cd-title { font-size: 0.95rem; font-weight: 600; color: #fff; }
+        .cd-title { font-size: 0.95rem; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 5px; }
+        .cd-category { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
         .cd-time { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
         .cd-del { color: var(--text-muted); font-size: 1.2rem; cursor: pointer; padding: 0 5px; transition: 0.2s; }
         .cd-del:hover { color: var(--danger); transform: scale(1.2); }
 
-        /* TARJETA DE DÍA (GLASSMORPHISM) */
+        /* TARJETA DE DÍA */
         .day-card { 
             background: var(--card-bg); 
             backdrop-filter: blur(12px);
@@ -134,7 +134,6 @@
             flex-direction: column; 
             transition: transform 0.3s;
         }
-        .day-card:hover { border-color: rgba(255,255,255,0.2); }
 
         .card-header { 
             padding: 15px 20px; 
@@ -186,7 +185,7 @@
         .task-check { cursor: pointer; color: var(--success); font-size: 1rem; }
         .task-del { cursor: pointer; color: var(--danger); margin-left: 4px; opacity: 0.7; }
 
-        /* TIMELINE (GRID OSCURO Y NEÓN) */
+        /* TIMELINE */
         .timeline-scroll-area { overflow-x: auto; background: rgba(0,0,0,0.2); }
         .timeline-wrapper { display: flex; flex-direction: column; min-width: 320px; padding-bottom: 5px; }
         .hour-row { display: flex; height: 32px; border-bottom: 1px solid rgba(255,255,255,0.05); }
@@ -217,7 +216,7 @@
             border: 1px solid var(--primary);
         }
         
-        /* BARRA DE ACCIÓN FLOTANTE (NEÓN) */
+        /* BARRA DE ACCIÓN */
         #selectionActionBar { 
             position: fixed; 
             bottom: 25px; 
@@ -249,7 +248,7 @@
             letter-spacing: 1px;
         }
 
-        /* MODALES (OSCUROS) */
+        /* MODALES */
         .modal-overlay { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.8); 
@@ -284,7 +283,6 @@
         }
         .input-group input:focus, .input-group select:focus { border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
 
-        /* Selector de Intensidad */
         .intensity-selector { display: flex; gap: 8px; margin-top: 5px; }
         .intensity-opt { 
             flex: 1; 
@@ -312,7 +310,6 @@
         .btn-half { flex: 1; padding: 12px; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; }
         .btn-sec { background: rgba(255,255,255,0.1); color: white; border: 1px solid var(--card-border); }
         
-        /* Config List */
         .config-list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .cat-info { display: flex; align-items: center; gap: 10px; }
         .cat-color-dot { width: 14px; height: 14px; border-radius: 50%; box-shadow: 0 0 5px currentColor; }
@@ -320,12 +317,10 @@
         .cat-btn:hover { transform: scale(1.1); }
         .btn-del { background: rgba(255, 46, 99, 0.2); color: var(--danger); border: 1px solid var(--danger); }
 
-        /* Programador Checkboxes */
         .days-selector { display: flex; justify-content: space-between; margin-top: 10px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; }
         .day-chk { display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; cursor: pointer; color: var(--text-muted); }
         .day-chk input { width: 18px; height: 18px; margin-bottom: 5px; accent-color: var(--primary); }
 
-        /* TOAST */
         #toast { 
             position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); 
             background: rgba(0,0,0,0.9); 
@@ -336,6 +331,12 @@
             box-shadow: 0 5px 20px rgba(0,0,0,0.5);
         }
         #toast.show { opacity: 1; transform: translateX(-50%) translateY(-10px); }
+
+        /* Priority Styling */
+        .prio-badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-left: 5px; font-weight: 700; }
+        .prio-high { background: var(--danger); color: white; }
+        .prio-med { background: var(--warning); color: black; }
+        .prio-low { background: var(--success); color: black; }
 
     </style>
 </head>
@@ -357,7 +358,7 @@
         <!-- Cuenta Regresiva -->
         <div class="countdown-section">
             <div class="countdown-header">
-                <span>⏳ EVENTOS CRÍTICOS</span>
+                <span>⏳ EVENTOS PRÓXIMOS</span>
                 <span style="cursor:pointer; color:var(--primary); font-weight:700;" onclick="openCountdownModal()">+ AGREGAR</span>
             </div>
             <div class="countdown-list" id="countdownList"></div>
@@ -505,14 +506,35 @@
         </div>
     </div>
 
-    <!-- MODAL: CUENTA REGRESIVA -->
+    <!-- MODAL: CUENTA REGRESIVA (ACTUALIZADO) -->
     <div class="modal-overlay" id="countdownModal">
         <div class="modal">
-            <h3>Nuevo Evento Crítico</h3>
+            <h3>Nuevo Evento</h3>
             <div class="input-group">
                 <label>Nombre del Evento</label>
                 <input type="text" id="cdName" placeholder="Examen Final">
             </div>
+            
+            <div class="input-group">
+                <label>Categoría</label>
+                <select id="cdCategory">
+                    <option value="Estudio">📚 Estudio</option>
+                    <option value="Trabajo">💼 Trabajo</option>
+                    <option value="Personal">🏠 Personal</option>
+                    <option value="Salud">🏥 Salud</option>
+                    <option value="Social">🎉 Social</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Nivel de Importancia</label>
+                <select id="cdPriority">
+                    <option value="Normal">Normal</option>
+                    <option value="Importante">Importante</option>
+                    <option value="CRÍTICA">🔥 CRÍTICA (Rojo)</option>
+                </select>
+            </div>
+
             <div class="input-group">
                 <label>Fecha y Hora Límite</label>
                 <input type="datetime-local" id="cdDate">
@@ -525,73 +547,124 @@
     </div>
 
     <script>
-        // --- FIREBASE ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyCob0gJM97c9RsWGm3UglbyMHChD5RHM1k", authDomain: "sistema-40a4f.firebaseapp.com",
-            projectId: "sistema-40a4f", storageBucket: "sistema-40a4f.firebasestorage.app",
-            messagingSenderId: "907198670936", appId: "1:907198670936:web:26d61badc092c89c74022d",
-            measurementId: "G-SVPM9JX87D"
-        };
-        try { if (!firebase.apps.length) firebase.initializeApp(firebaseConfig); } catch (e) {}
-        const db = firebase.firestore();
+        // --- SEGURIDAD DE CARGA ---
+        let db = null;
+        try {
+            if (typeof firebase !== 'undefined') {
+                const firebaseConfig = {
+                    apiKey: "AIzaSyCob0gJM97c9RsWGm3UglbyMHChD5RHM1k", authDomain: "sistema-40a4f.firebaseapp.com",
+                    projectId: "sistema-40a4f", storageBucket: "sistema-40a4f.firebasestorage.app",
+                    messagingSenderId: "907198670936", appId: "1:907198670936:web:26d61badc092c89c74022d",
+                    measurementId: "G-SVPM9JX87D"
+                };
+                if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+            } else {
+                console.warn("Firebase no cargó.");
+            }
+        } catch (e) {
+            console.error("Error iniciando Firebase:", e);
+        }
 
-        // --- ESTADO ---
+        // --- ESTADO GLOBAL ---
         const TOTAL_MINUTES = 1440;
         let daysData = [];
         
-        // Categorías con colores neón por defecto para el tema oscuro
         let categories = JSON.parse(localStorage.getItem('cd_categories')) || [
-            { id: 'c1', name: 'Estudio', color: '#00f260', activities: ['Leer', 'Deberes', 'Proyecto'] }, // Verde Neón
-            { id: 'c2', name: 'Ocio', color: '#f7971e', activities: ['Videojuegos', 'Película'] }, // Naranja Fuego
-            { id: 'c3', name: 'Deporte', color: '#00c6ff', activities: ['Gimnasio', 'Correr'] }, // Azul Eléctrico
-            { id: 'c4', name: 'Trabajo', color: '#8e2de2', activities: ['Oficina', 'Reunión'] }, // Violeta
-            { id: 'c5', name: 'Arte', color: '#ff0099', activities: ['Dibujo', 'Música'] } // Rosa Intenso
+            { id: 'c1', name: 'Estudio', color: '#00f260', activities: ['Leer', 'Deberes', 'Proyecto'] }, 
+            { id: 'c2', name: 'Ocio', color: '#f7971e', activities: ['Videojuegos', 'Película'] }, 
+            { id: 'c3', name: 'Deporte', color: '#00c6ff', activities: ['Gimnasio', 'Correr'] }, 
+            { id: 'c4', name: 'Trabajo', color: '#8e2de2', activities: ['Oficina', 'Reunión'] }, 
+            { id: 'c5', name: 'Arte', color: '#ff0099', activities: ['Dibujo', 'Música'] } 
         ];
 
+        // Estructura de eventos actualizada
         let events = JSON.parse(localStorage.getItem('cd_events')) || [];
         let currentEditingCatId = null;
         let currentPaintIntensity = 100; 
 
-        const userDocRef = db.collection("cronos_users").doc("user_timeline_dark_v1");
+        const userDocRef = db ? db.collection("cronos_users").doc("user_timeline_dark_v3") : null;
 
-        // --- INIT ---
-        function init() {
-            document.getElementById('newDayDate').value = new Date().toISOString().split('T')[0];
-            const today = new Date();
-            const future = new Date();
-            future.setMonth(future.getMonth() + 4);
-            document.getElementById('schedDateStart').value = today.toISOString().split('T')[0];
-            document.getElementById('schedDateEnd').value = future.toISOString().split('T')[0];
-
-            loadDaysFromFirebase();
-            renderCountdowns();
-            setInterval(renderCountdowns, 1000);
+        // --- FUNCIONES DE CONTROL DE INTERFAZ ---
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            if(el) el.style.display = 'none';
+        }
+        
+        function openDateModal() { 
+            const el = document.getElementById('dateModal');
+            if(el) el.style.display = 'flex'; 
         }
 
-        // --- LÓGICA DE DÍAS ---
-        function openDateModal() { document.getElementById('dateModal').style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function openSettingsModal() { 
+            renderCatList();
+            const el = document.getElementById('settingsModal');
+            if(el) el.style.display = 'flex'; 
+        }
+
+        function openScheduleModal() { 
+            const el = document.getElementById('scheduleModal');
+            if(el) el.style.display = 'flex'; 
+        }
         
+        function openCountdownModal() { 
+            const el = document.getElementById('countdownModal');
+            if(el) el.style.display = 'flex'; 
+        }
+
+        function openActivityManager(catId) {
+            currentEditingCatId = catId;
+            const cat = categories.find(c => c.id === catId);
+            const title = document.getElementById('actModalTitle');
+            if(title && cat) title.innerText = `Actividades: ${cat.name}`;
+            renderActivityList();
+            const el = document.getElementById('activityModal');
+            if(el) el.style.display = 'flex';
+        }
+
+        function openPaintModal() {
+            renderCategorySelect();
+            const opts = document.querySelectorAll('.intensity-opt');
+            if(opts.length > 0) setIntensity(100, opts[0]);
+            const el = document.getElementById('paintModal');
+            if(el) el.style.display = 'flex';
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById("toast");
+            if(t) {
+                t.innerText = msg;
+                t.classList.add("show");
+                setTimeout(() => t.classList.remove("show"), 2500);
+            }
+        }
+
+        // --- LÓGICA DE DATOS ---
+        function sortDays() { daysData.sort((a, b) => b.dateStr.localeCompare(a.dateStr)); }
+
         function confirmAddDay() {
-            const dateStr = document.getElementById('newDayDate').value;
-            if(!dateStr) return;
+            const dateInput = document.getElementById('newDayDate');
+            if(!dateInput) return;
+            const dateStr = dateInput.value;
+            if(!dateStr) { showToast("Elige una fecha"); return; }
             if(daysData.find(d => d.dateStr === dateStr)) { showToast("El día ya existe"); closeModal('dateModal'); return; }
             const newDay = { id: 'd_'+Date.now(), dateStr: dateStr, blocks: new Array(TOTAL_MINUTES).fill(null), tasks: [] };
             daysData.push(newDay);
             sortDays();
-            saveDaysToFirebase();
+            saveData();
             renderAllDays();
             closeModal('dateModal');
-            setTimeout(() => { const el = document.getElementById(`card-${newDay.id}`); if(el) el.scrollIntoView({behavior: "smooth", block: "center"}); }, 100);
+            setTimeout(() => { 
+                const el = document.getElementById(`card-${newDay.id}`); 
+                if(el) el.scrollIntoView({behavior: "smooth", block: "center"}); 
+            }, 100);
         }
 
-        function sortDays() { daysData.sort((a, b) => b.dateStr.localeCompare(a.dateStr)); }
-
-        // --- RENDERIZADO ---
         function renderAllDays() {
             const container = document.getElementById('daysContainer');
+            if(!container) return;
             container.innerHTML = '';
-            if(daysData.length === 0) container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted); font-style:italic;">Sin días registrados. Agrega una nueva tablita.</div>';
+            if(daysData.length === 0) container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted); font-style:italic;">Sin días registrados.</div>';
 
             daysData.forEach((day, index) => {
                 if (index + 1 < daysData.length) {
@@ -651,19 +724,20 @@
             const text = inputEl.value.trim();
             if(!text) return;
             const day = daysData.find(d => d.id === dayId);
-            if(day) { day.tasks.push({ text: text, done: false }); inputEl.value = ''; saveDaysToFirebase(); updateTasksUI(dayId); }
+            if(day) { day.tasks.push({ text: text, done: false }); inputEl.value = ''; saveData(); updateTasksUI(dayId); }
         }
         function toggleTask(dayId, idx) {
             const day = daysData.find(d => d.id === dayId);
-            if(day) { day.tasks[idx].done = !day.tasks[idx].done; saveDaysToFirebase(); updateTasksUI(dayId); }
+            if(day) { day.tasks[idx].done = !day.tasks[idx].done; saveData(); updateTasksUI(dayId); }
         }
         function deleteTask(dayId, idx) {
             const day = daysData.find(d => d.id === dayId);
-            if(day) { day.tasks.splice(idx, 1); saveDaysToFirebase(); updateTasksUI(dayId); }
+            if(day) { day.tasks.splice(idx, 1); saveData(); updateTasksUI(dayId); }
         }
         function updateTasksUI(dayId) {
             const day = daysData.find(d => d.id === dayId);
             const ul = document.getElementById(`tasks-${dayId}`);
+            if(!ul || !day) return;
             ul.innerHTML = '';
             (day.tasks || []).forEach((t, idx) => {
                 const li = document.createElement('li');
@@ -673,7 +747,7 @@
             });
         }
 
-        // --- GRID & SELECCIÓN ---
+        // --- GRID ---
         function toggleBlock(el) {
             el.classList.toggle('selected');
             updateActionBar();
@@ -681,11 +755,11 @@
         function updateActionBar() {
             const count = document.querySelectorAll('.block.selected').length;
             const bar = document.getElementById('selectionActionBar');
-            document.getElementById('selCount').innerText = count + " bloques";
-            bar.classList.toggle('hidden', count === 0);
+            const txt = document.getElementById('selCount');
+            if(bar) bar.classList.toggle('hidden', count === 0);
+            if(txt) txt.innerText = count + " bloques";
         }
 
-        // --- BORRAR DOBLE CLICK ---
         function clearBlock(el) {
             const dayId = el.dataset.day;
             const s = parseInt(el.dataset.s);
@@ -693,28 +767,23 @@
             const day = daysData.find(d => d.id === dayId);
             if(day) {
                 for(let k=s; k<=e; k++) day.blocks[k] = null;
-                saveDaysToFirebase();
+                saveData();
                 refreshVisuals(dayId);
                 showToast("Borrado");
             }
         }
 
-        // --- PINTADO (1/2 INTELIGENTE) ---
-        function openPaintModal() {
-            renderCategorySelect();
-            setIntensity(100, document.querySelector('.intensity-opt'));
-            document.getElementById('paintModal').style.display = 'flex';
-        }
-
+        // --- PINTADO ---
         function setIntensity(val, el) {
             currentPaintIntensity = val;
             document.querySelectorAll('.intensity-opt').forEach(d => d.classList.remove('active'));
-            el.classList.add('active');
+            if(el) el.classList.add('active');
         }
 
         function renderCategorySelect() {
             const s = document.getElementById('paintCategory');
             const sSched = document.getElementById('schedCategory');
+            if(!s || !sSched) return;
             s.innerHTML = ''; sSched.innerHTML = '';
             categories.forEach(c => {
                 const o = document.createElement('option'); o.value = c.id; o.innerText = c.name; s.appendChild(o);
@@ -727,6 +796,7 @@
         function updateActivitySelect() {
             const catId = document.getElementById('paintCategory').value;
             const actSel = document.getElementById('paintActivity');
+            if(!actSel) return;
             actSel.innerHTML = '';
             const cat = categories.find(c => c.id === catId);
             if(cat && cat.activities) {
@@ -751,7 +821,6 @@
                 
                 if(day) {
                     affectedDays.add(dayId);
-                    
                     if(currentPaintIntensity == 100) {
                         for(let k=s; k<=e; k++) day.blocks[k] = { catId, name: activityName, color };
                     } else if (currentPaintIntensity == 50) {
@@ -773,7 +842,7 @@
                 b.classList.remove('selected');
             });
 
-            saveDaysToFirebase();
+            saveData();
             affectedDays.forEach(id => refreshVisuals(id));
             updateActionBar();
             closeModal('paintModal');
@@ -789,18 +858,15 @@
             blocks.forEach(b => {
                 const s = parseInt(b.dataset.s);
                 const e = parseInt(b.dataset.e);
-                
                 let color1 = null, color2 = null;
                 let lastName = "";
 
-                // Check 1st half
                 for(let k=s; k<=s+4; k++) {
                     if(day.blocks[k]) {
                         const c = categories.find(x => x.id === day.blocks[k].catId);
                         if(c) { color1 = c.color; lastName = day.blocks[k].name; break; }
                     }
                 }
-                // Check 2nd half
                 for(let k=s+5; k<=e; k++) {
                     if(day.blocks[k]) {
                         const c = categories.find(x => x.id === day.blocks[k].catId);
@@ -823,14 +889,15 @@
                     b.title = '';
                 }
             });
-            document.getElementById(`stats-${day.id}`).innerText = totalActive + " min";
+            const statsEl = document.getElementById(`stats-${dayId}`);
+            if(statsEl) statsEl.innerText = totalActive + " min";
         }
 
         // --- PROGRAMADOR ---
-        function openScheduleModal() { document.getElementById('scheduleModal').style.display = 'flex'; }
         function updateSchedActivity() {
             const catId = document.getElementById('schedCategory').value;
             const actSel = document.getElementById('schedActivity');
+            if(!actSel) return;
             actSel.innerHTML = '';
             const cat = categories.find(c => c.id === catId);
             if(cat && cat.activities) cat.activities.forEach(a => actSel.innerHTML += `<option value="${a}">${a}</option>`);
@@ -838,7 +905,7 @@
 
         function confirmSchedule() {
             const selectedDays = [];
-            document.querySelectorAll('.days-selector input:checked').forEach(cb => selectedDays.push(parseInt(cb.value));
+            document.querySelectorAll('.days-selector input:checked').forEach(cb => selectedDays.push(parseInt(cb.value)));
             if(selectedDays.length === 0) { showToast("Elige días"); return; }
             const startDateStr = document.getElementById('schedDateStart').value;
             const endDateStr = document.getElementById('schedDateEnd').value;
@@ -879,18 +946,15 @@
             if(createdCount > 0) { sortDays(); renderAllDays(); }
             else { daysData.forEach(d => refreshVisuals(d.id)); }
 
-            saveDaysToFirebase();
+            saveData();
             closeModal('scheduleModal');
             showToast("¡Programación lista!");
         }
 
         // --- CONFIGURACIÓN ---
-        function openSettingsModal() {
-            renderCatList();
-            document.getElementById('settingsModal').style.display = 'flex';
-        }
         function renderCatList() {
             const div = document.getElementById('catListRender');
+            if(!div) return;
             div.innerHTML = '';
             categories.forEach((c, i) => {
                 div.innerHTML += `<div class="config-list-item"><div class="cat-info"><div class="cat-color-dot" style="background:${c.color}; color:${c.color}"></div><span style="color:#fff;">${c.name}</span></div><div><button class="cat-btn btn-sec" style="border:1px solid rgba(255,255,255,0.2); color:white;" onclick="openActivityManager('${c.id}')">✏️</button><button class="cat-btn btn-del" onclick="deleteCat(${i})">🗑</button></div></div>`;
@@ -908,17 +972,10 @@
         function deleteCat(i) {
             if(confirm("¿Eliminar categoría?")) { categories.splice(i, 1); localStorage.setItem('cd_categories', JSON.stringify(categories)); renderCatList(); }
         }
-
-        function openActivityManager(catId) {
-            currentEditingCatId = catId;
-            const cat = categories.find(c => c.id === catId);
-            document.getElementById('actModalTitle').innerText = `Actividades: ${cat.name}`;
-            renderActivityList();
-            document.getElementById('activityModal').style.display = 'flex';
-        }
         function renderActivityList() {
             const cat = categories.find(c => c.id === currentEditingCatId);
             const list = document.getElementById('activityListRender');
+            if(!list || !cat) return;
             list.innerHTML = '';
             (cat.activities || []).forEach((act, i) => {
                 list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05);"><span style="color:#ddd;">${act}</span><span style="color:var(--danger); cursor:pointer;" onclick="delActivity(${i})">×</span></div>`;
@@ -935,20 +992,31 @@
             if(cat) { cat.activities.splice(idx, 1); localStorage.setItem('cd_categories', JSON.stringify(categories)); renderActivityList(); }
         }
 
-        // --- EVENTOS (CRÍTICOS) ---
-        function openCountdownModal() { document.getElementById('countdownModal').style.display = 'flex'; }
+        // --- EVENTOS (CON CATEGORÍA Y PRIORIDAD) ---
         function addCountdown() {
             const n = document.getElementById('cdName').value;
             const d = document.getElementById('cdDate').value;
+            const cat = document.getElementById('cdCategory').value;
+            const prio = document.getElementById('cdPriority').value;
+
             if(!n || !d) return;
-            events.push({ name: n, date: d });
+            
+            events.push({ 
+                name: n, 
+                date: d, 
+                category: cat,
+                priority: prio 
+            });
+            
             localStorage.setItem('cd_events', JSON.stringify(events));
             renderCountdowns();
             closeModal('countdownModal');
             document.getElementById('cdName').value = '';
         }
+
         function renderCountdowns() {
             const list = document.getElementById('countdownList');
+            if(!list) return;
             list.innerHTML = '';
             const now = new Date();
             events.sort((a,b) => new Date(a.date) - new Date(b.date));
@@ -971,12 +1039,38 @@
                 const fmt = (n) => n < 10 ? '0'+n : n;
                 let timeStr = `${diffDays}d ${fmt(diffHours)}:${fmt(diffMins)}:${fmt(diffSecs)}`;
 
+                // LÓGICA DE IMPORTANCIA
                 let urgencyClass = "";
-                if (diffDays < 3) urgencyClass = "urgent-red";
+                let warningIcon = "";
+                let prioBadge = "";
+
+                if (ev.priority === 'CRÍTICA') {
+                    urgencyClass = "urgent-red";
+                    warningIcon = "⚠️ ";
+                } else if (ev.priority === 'Importante' && diffDays < 3) {
+                    urgencyClass = "urgent-orange";
+                } else if (diffDays < 3) {
+                    urgencyClass = "urgent-red"; // Urgente por fecha
+                    warningIcon = "⚠️ ";
+                } else if (diffDays < 7) {
+                    urgencyClass = "urgent-orange";
+                }
+
+                // Badge de prioridad
+                if(ev.priority === 'CRÍTICA') prioBadge = `<span class="prio-badge prio-high">CRÍTICA</span>`;
+                else if(ev.priority === 'Importante') prioBadge = `<span class="prio-badge prio-med">IMP</span>`;
+                else prioBadge = `<span class="prio-badge prio-low">NRM</span>`;
 
                 const div = document.createElement('div');
                 div.className = `cd-card ${urgencyClass}`;
-                div.innerHTML = `<div class="cd-info"><div class="cd-title">${ev.name}</div><div class="cd-time">${timeStr}</div></div><div class="cd-del" onclick="removeEvent(${i})">×</div>`;
+                div.innerHTML = `
+                    <div class="cd-info">
+                        <div class="cd-title">${warningIcon}${ev.name} ${prioBadge}</div>
+                        <div class="cd-category">${ev.category}</div>
+                        <div class="cd-time">${timeStr}</div>
+                    </div>
+                    <div class="cd-del" onclick="removeEvent(${i})">×</div>
+                `;
                 list.appendChild(div);
                 visibleCount++;
             }
@@ -985,21 +1079,51 @@
             if(confirm("¿Borrar evento?")) { events.splice(i, 1); localStorage.setItem('cd_events', JSON.stringify(events)); renderCountdowns(); }
         }
 
-        // --- SYNC ---
-        function loadDaysFromFirebase() {
-            userDocRef.get().then(doc => {
-                if(doc.exists && doc.data() && doc.data().days) { daysData = doc.data().days; sortDays(); renderAllDays(); } else { renderAllDays(); }
-            });
-        }
-        function saveDaysToFirebase() {
-            userDocRef.set({ days: daysData, lastUpdate: new Date() }, { merge: true });
+        // --- PERSISTENCIA ---
+        function saveData() {
+            if (userDocRef) {
+                userDocRef.set({ days: daysData, lastUpdate: new Date() }, { merge: true }).catch(err => console.error("Error guardando:", err));
+            }
         }
 
-        function showToast(msg) {
-            const t = document.getElementById("toast"); t.innerText = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2500);
+        function loadData() {
+            if (userDocRef) {
+                userDocRef.get().then(doc => {
+                    if(doc.exists && doc.data() && doc.data().days) { 
+                        daysData = doc.data().days; 
+                        sortDays(); 
+                        renderAllDays(); 
+                    } else { 
+                        renderAllDays(); 
+                    }
+                }).catch(err => {
+                    console.error("Error cargando:", err);
+                    renderAllDays(); 
+                });
+            } else {
+                renderAllDays();
+            }
         }
 
-        init();
+        // --- INICIO ---
+        window.onload = function() {
+            const dateInput = document.getElementById('newDayDate');
+            if(dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+
+            const startInput = document.getElementById('schedDateStart');
+            const endInput = document.getElementById('schedDateEnd');
+            if(startInput && endInput) {
+                const today = new Date();
+                const future = new Date();
+                future.setMonth(future.getMonth() + 4);
+                startInput.value = today.toISOString().split('T')[0];
+                endInput.value = future.toISOString().split('T')[0];
+            }
+
+            loadData();
+            renderCountdowns();
+            setInterval(renderCountdowns, 1000);
+        };
     </script>
 </body>
 </html>
