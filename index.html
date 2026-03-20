@@ -3,300 +3,526 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cronos Day - Modo Libro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Firebase Compat -->
+    <title>Cronos Day - Passionate Mode</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* --- TUS ESTILOS ORIGINALES --- */
         :root {
-            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            --glass-bg: #ffffff;
-            --text-main: #2d3436;
-            --text-light: #636e72;
-            --primary: #6c5ce7;
-            --border-radius: 12px;
-            --success: #00b894;
-            --danger: #d63031;
+            /* PALETA INTENSA Y APASIONADA */
+            --bg-gradient: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            --primary: #ff007f; /* Rosa Neón Intenso - Pasión */
+            --primary-glow: rgba(255, 0, 127, 0.6);
+            --card-bg: rgba(30, 30, 45, 0.65); /* Cristal Oscuro */
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text: #ffffff;
+            --text-muted: #aab2bd;
+            --danger: #ff2e63; /* Rojo Neón */
+            --warning: #fce38a;
+            --success: #00f260;
+            
+            --block-empty: #2b2b40;
+            --selection-color: rgba(255, 0, 127, 0.4);
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: var(--bg-gradient);
-            color: var(--text-main);
-            margin: 0;
-            padding: 10px;
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Poppins', sans-serif; }
+        
+        body { 
+            margin: 0; 
+            background: var(--bg-gradient); 
+            background-attachment: fixed; /* Fondo fijo con efecto de profundidad */
+            color: var(--text); 
+            padding: 10px 10px 110px 10px; 
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
 
-        .app-container {
-            background: var(--glass-bg);
-            border-radius: var(--border-radius);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 600px;
-            padding: 15px;
-            position: relative;
-        }
+        /* SCROLLBAR PERSONALIZADO */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
 
-        /* FLASH EFECT BLANCO PURO (Limpieza Visual) */
-        .flash-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: white; opacity: 0; pointer-events: none; z-index: 50;
-            transition: opacity 0.1s ease-out;
+        /* HEADER */
+        .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 0 5px; flex-wrap: wrap; gap: 10px; }
+        .app-title h1 { 
+            margin: 0; 
+            font-size: 1.6rem; 
+            background: linear-gradient(90deg, #fff, var(--primary)); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            font-weight: 800;
+            letter-spacing: -0.5px;
         }
-        .flash-active { opacity: 1; }
+        .app-title p { margin: 0; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; }
 
-        /* --- HEADER --- */
-        header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 15px; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid #eee; padding-bottom: 10px;
+        .header-actions { display: flex; gap: 10px; }
+        .icon-btn { 
+            background: rgba(255,255,255,0.1); 
+            backdrop-filter: blur(5px);
+            border: 1px solid var(--card-border);
+            color: white; 
+            width: 40px; height: 40px; 
+            border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; 
+            transition: all 0.3s;
         }
-        .title-group h1 { margin: 0; font-size: 1.2rem; color: var(--primary); }
-        .title-group p { margin: 0; font-size: 0.75rem; color: var(--text-light); }
+        .icon-btn:hover { background: var(--primary); box-shadow: 0 0 15px var(--primary-glow); transform: translateY(-2px); }
+
+        /* CONTENEDOR PRINCIPAL */
+        #mainContainer { width: 100%; max-width: 100%; display: flex; flex-direction: column; gap: 20px; }
+
+        /* SECCIÓN CUENTA REGRESIVA (HUD ESTILO) */
+        .countdown-section { 
+            background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(20,20,30,0.8));
+            border: 1px solid var(--card-border);
+            border-radius: 16px; 
+            padding: 20px; 
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .countdown-header { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: 700; color: var(--text-muted); font-size: 0.8rem; letter-spacing: 1px; }
         
-        .top-controls { display: flex; gap: 8px; align-items: center; }
+        .countdown-list { display: flex; flex-direction: column; gap: 12px; }
+        .cd-card { 
+            background: rgba(255,255,255,0.05); 
+            padding: 12px 18px; 
+            border-radius: 12px; 
+            border-left: 5px solid #555; 
+            display: flex; justify-content: space-between; align-items: center; 
+            transition: 0.3s;
+        }
         
-        button.icon-btn {
-            background: #f1f2f6; border: none; border-radius: 50%;
-            width: 36px; height: 36px; font-size: 1.1rem; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; color: #555;
+        /* ESTILO URGENTE INTENSO */
+        .cd-card.urgent-red { 
+            border-left-color: var(--danger); 
+            background: linear-gradient(90deg, rgba(255, 46, 99, 0.15), transparent);
+            box-shadow: inset 10px 0 20px -10px rgba(255, 46, 99, 0.3);
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite alternate;
         }
-        input[type="date"] {
-            border: 1px solid #ddd; padding: 5px 10px; border-radius: 8px;
-            font-family: inherit; font-size: 0.9rem; color: var(--text-main);
+        
+        .cd-card.urgent-red .cd-time { 
+            color: var(--danger); 
+            font-weight: 800; 
+            font-size: 1.3rem; 
+            font-family: 'Courier New', monospace; 
+            text-shadow: 0 0 10px var(--danger);
         }
 
-        /* --- CHECKLIST --- */
-        .checklist-section {
-            background: #fffaf0; border: 1px solid #ffeaa7;
-            border-radius: 10px; padding: 10px; margin-bottom: 15px;
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
         }
-        .checklist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .checklist-header h3 { margin: 0; font-size: 0.9rem; color: #d35400; }
-        .checklist-input-group { display: flex; gap: 5px; margin-bottom: 8px; }
-        .checklist-input { flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.85rem; }
-        .add-todo-btn { background: #d35400; color: white; border: none; padding: 0 10px; border-radius: 5px; cursor: pointer; }
-        .todo-list { list-style: none; padding: 0; margin: 0; max-height: 100px; overflow-y: auto; }
-        .todo-item { display: flex; align-items: center; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 0.85rem; }
-        .todo-item span { flex: 1; margin-left: 8px; }
-        .todo-item.completed span { text-decoration: line-through; color: #aaa; }
-        .delete-todo { color: #ff7675; cursor: pointer; margin-left: 10px; }
 
-        /* --- CONTROLS --- */
-        .controls-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; background: #f8f9fa; padding: 10px; border-radius: 10px; margin-bottom: 10px; }
-        .input-group { display: flex; flex-direction: column; gap: 2px; position: relative; }
-        label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: #aaa; }
-        input[type="text"], select { padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem; font-family: inherit; outline: none; width: 100%; }
-        .btn-fav { position: absolute; right: 5px; top: 22px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #ddd; z-index: 2; }
-        .btn-fav.active { color: #fdcb6e; }
-        .btn { padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; color: white; font-size: 0.9rem; height: 38px; width: 100%; }
-        .btn-start { background: var(--primary); }
-        .btn-stop { background: #ff7675; display: none; }
+        .cd-info { display: flex; flex-direction: column; }
+        .cd-title { font-size: 0.95rem; font-weight: 600; color: #fff; }
+        .cd-time { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+        .cd-del { color: var(--text-muted); font-size: 1.2rem; cursor: pointer; padding: 0 5px; transition: 0.2s; }
+        .cd-del:hover { color: var(--danger); transform: scale(1.2); }
 
-        /* --- FAVORITOS --- */
-        .favorites-bar { display: flex; gap: 8px; overflow-x: auto; padding: 5px 0; margin-bottom: 15px; min-height: 40px; scrollbar-width: none; }
-        .favorites-bar::-webkit-scrollbar { display: none; }
-        .chip { background: #fff; border: 1px solid #eee; padding: 5px 12px; border-radius: 15px; font-size: 0.8rem; white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee; flex-shrink: 0; }
-        .chip-color { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-        .chip-close { font-size: 0.9rem; color: #ccc; margin-left: 5px; }
-
-        /* --- VIEW & ZOOM --- */
-        .view-controls { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; background: #fff; padding: 5px 10px; border-radius: 20px; border: 1px solid #eee; }
-        .toggle-switch { display: flex; background: #f0f0f0; border-radius: 15px; padding: 2px; }
-        .toggle-option { padding: 4px 10px; border-radius: 13px; font-size: 0.75rem; font-weight: 600; cursor: pointer; color: #777; }
-        .toggle-option.active { background: white; color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .zoom-slider { flex-grow: 1; max-width: 100px; }
-
-        /* --- TIMELINE --- */
-        .timeline-scroll-area { overflow-x: hidden; overflow-y: auto; border-radius: 10px; background: #fff; border: 1px solid #eee; height: 400px; }
-        .timeline-scroll-area::-webkit-scrollbar { width: 6px; }
-        .timeline-scroll-area::-webkit-scrollbar-thumb { background: #ddd; border-radius: 3px; }
-        .timeline-wrapper { display: flex; flex-direction: column; width: 100%; }
-        .hour-row { display: flex; height: 45px; border-bottom: 1px solid #f1f2f6; width: 100%; }
-        .hour-label { width: 35px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #f9f9f9; border-right: 1px solid #e0e0e0; font-weight: 700; color: #636e72; font-size: 0.75rem; flex-shrink: 0; }
-        .hour-label span { display: none; }
-        .hour-row.is-current .hour-label { background: var(--primary); color: white; }
-        .minutes-container { display: flex; flex: 1; height: 100%; }
-        .view-1min .minutes-container { overflow-x: auto; }
-        .view-1min .block { min-width: 15px; flex-shrink: 0; }
-        .view-1min .hour-row { overflow: visible; }
-        .view-1min .timeline-scroll-area { overflow-x: auto; }
-        .view-10min .block { flex: 1; border-right: 1px solid rgba(255,255,255,0.5); transition: background 0.2s; }
-        .block { height: 100%; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: rgba(0,0,0,0.3); }
-        .block:hover { filter: brightness(0.9); z-index: 2; }
-        .block.selected { outline: 2px solid #2d3436; outline-offset: -2px; z-index: 10; }
-        .block.is-now { box-shadow: inset 0 0 0 2px #d63031; z-index: 5; }
-        .block.is-now::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 6px; height: 6px; background: #d63031; border-radius: 50%; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(214, 48, 49, 0.7); } 70% { box-shadow: 0 0 0 6px rgba(214, 48, 49, 0); } 100% { box-shadow: 0 0 0 0 rgba(214, 48, 49, 0); } }
-        .bg-dead { background-color: #f1f2f6; border-right: 1px solid #e0e0e0 !important; }
-
-        /* --- TOAST --- */
-        #toast {
-            visibility: hidden; min-width: 250px; background-color: #333; color: #fff;
-            text-align: center; border-radius: 4px; padding: 12px; position: fixed;
-            z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%);
-            font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        /* TARJETA DE DÍA (GLASSMORPHISM) */
+        .day-card { 
+            background: var(--card-bg); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px; 
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2); 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+            transition: transform 0.3s;
         }
-        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
-        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
-        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+        .day-card:hover { border-color: rgba(255,255,255,0.2); }
 
-        /* --- RESUMEN --- */
-        .summary { margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; }
-        .stat-card { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 0.8rem; display: flex; flex-direction: column; gap: 5px; }
-        .stat-header { display: flex; justify-content: space-between; align-items: center; }
-        .color-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
-        .progress-bg { height: 4px; background: #f0f0f0; border-radius: 2px; overflow: hidden; }
-        .progress-fill { height: 100%; border-radius: 2px; transition: width 0.5s; }
-
-        /* --- MODALS --- */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .modal { background: white; padding: 20px; border-radius: 15px; width: 90%; max-width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: slideUp 0.3s ease; max-height: 85vh; overflow-y: auto; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        .history-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 10px; }
-        .history-table th { text-align: left; padding: 8px; border-bottom: 2px solid #eee; color: #666; }
-        .history-table td { padding: 8px; border-bottom: 1px solid #eee; vertical-align: middle; }
-        .action-btn { padding: 4px 8px; border-radius: 4px; border: none; cursor: pointer; font-size: 0.75rem; margin-right: 5px; color: white; }
-        .btn-edit { background: var(--primary); }
-        .btn-del { background: var(--danger); }
-
-        @media (max-width: 768px) {
-            .app-container { padding: 10px; border-radius: 0; min-height: 100vh; box-shadow: none; max-width: 100%; }
-            body { padding: 0; background: white; }
-            header { justify-content: space-between; }
-            .title-group { text-align: left; }
-            .timeline-scroll-area { width: 100%; } 
+        .card-header { 
+            padding: 15px 20px; 
+            background: rgba(255,255,255,0.03); 
+            border-bottom: 1px solid var(--card-border); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
         }
+        .card-date { font-weight: 800; font-size: 1.1rem; color: #fff; letter-spacing: 0.5px; }
+        .card-stats { 
+            font-size: 0.7rem; 
+            background: rgba(0,0,0,0.3); 
+            padding: 4px 10px; 
+            border-radius: 20px; 
+            color: var(--primary); 
+            border: 1px solid var(--primary-glow);
+            font-weight: 700;
+        }
+
+        /* TAREAS */
+        .tasks-section { padding: 15px 20px; background: rgba(255, 235, 59, 0.05); border-bottom: 1px solid rgba(255, 235, 59, 0.1); }
+        .tasks-input-group { display: flex; gap: 8px; margin-bottom: 10px; }
+        .task-input { 
+            flex: 1; padding: 10px; 
+            background: rgba(0,0,0,0.3); 
+            border: 1px solid var(--card-border); 
+            border-radius: 10px; 
+            font-size: 0.85rem; 
+            color: white; 
+            outline: none; 
+        }
+        .task-input:focus { border-color: var(--primary); }
+        .add-task-btn { background: var(--warning); color: #000; border: none; border-radius: 10px; padding: 0 15px; cursor: pointer; font-weight: 700; }
+        
+        .task-list { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+        .task-item { 
+            background: rgba(255,255,255,0.08); 
+            padding: 6px 12px; 
+            border-radius: 20px; 
+            font-size: 0.75rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+            border: 1px solid transparent;
+            transition: 0.2s;
+        }
+        .task-item.done { text-decoration: line-through; opacity: 0.4; background: transparent; border: 1px solid rgba(255,255,255,0.1); }
+        .task-check { cursor: pointer; color: var(--success); font-size: 1rem; }
+        .task-del { cursor: pointer; color: var(--danger); margin-left: 4px; opacity: 0.7; }
+
+        /* TIMELINE (GRID OSCURO Y NEÓN) */
+        .timeline-scroll-area { overflow-x: auto; background: rgba(0,0,0,0.2); }
+        .timeline-wrapper { display: flex; flex-direction: column; min-width: 320px; padding-bottom: 5px; }
+        .hour-row { display: flex; height: 32px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .hour-label { 
+            width: 30px; 
+            display: flex; justify-content: center; align-items: center; 
+            font-size: 0.65rem; 
+            color: var(--text-muted); 
+            font-weight: 700; 
+            border-right: 1px solid rgba(255,255,255,0.05); 
+            flex-shrink: 0; 
+        }
+        .minutes-container { display: flex; flex: 1; }
+        .block { 
+            flex: 1; 
+            border-right: 1px solid rgba(255,255,255,0.03); 
+            cursor: pointer; 
+            transition: 0.1s; 
+            position: relative; 
+            background: var(--block-empty);
+        }
+        .block:hover { background: #3a3a55; }
+        
+        .block.selected { 
+            background-color: var(--selection-color) !important; 
+            box-shadow: 0 0 10px var(--primary-glow); 
+            z-index: 10;
+            border: 1px solid var(--primary);
+        }
+        
+        /* BARRA DE ACCIÓN FLOTANTE (NEÓN) */
+        #selectionActionBar { 
+            position: fixed; 
+            bottom: 25px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 90%; 
+            max-width: 600px; 
+            background: rgba(20, 20, 30, 0.95); 
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--primary-glow);
+            padding: 15px 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 20px var(--primary-glow); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            z-index: 100; 
+        }
+        #selectionActionBar.hidden { transform: translate(-50%, 200%); }
+        
+        .btn-action { 
+            background: linear-gradient(45deg, var(--primary), #ff4d94); 
+            color: white; border: none; 
+            padding: 10px 25px; border-radius: 30px; font-weight: 700; cursor: pointer; 
+            box-shadow: 0 4px 15px rgba(255, 0, 127, 0.4);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        /* MODALES (OSCUROS) */
+        .modal-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.8); 
+            backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 1000; 
+        }
+        .modal { 
+            background: #1e1e2e; 
+            border: 1px solid var(--card-border);
+            padding: 25px; 
+            border-radius: 20px; 
+            width: 90%; 
+            max-width: 380px; 
+            max-height: 90vh; 
+            overflow-y: auto; 
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            color: white;
+        }
+        .modal h3 { margin-top: 0; color: var(--primary); font-weight: 800; letter-spacing: 0.5px; }
+        
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--primary); margin-bottom: 8px; text-transform: uppercase; }
+        .input-group input, .input-group select { 
+            width: 100%; padding: 12px; 
+            background: rgba(0,0,0,0.3); 
+            border: 1px solid var(--card-border); 
+            border-radius: 10px; 
+            box-sizing: border-box; 
+            font-size: 1rem; 
+            color: white; 
+            outline: none; 
+        }
+        .input-group input:focus, .input-group select:focus { border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
+
+        /* Selector de Intensidad */
+        .intensity-selector { display: flex; gap: 8px; margin-top: 5px; }
+        .intensity-opt { 
+            flex: 1; 
+            border: 1px solid var(--card-border); 
+            padding: 12px 5px; 
+            border-radius: 10px; 
+            text-align: center; 
+            font-size: 0.75rem; 
+            cursor: pointer; 
+            background: rgba(255,255,255,0.05); 
+            transition: 0.2s; 
+            color: var(--text-muted);
+        }
+        .intensity-opt.active { 
+            background: linear-gradient(135deg, var(--primary), #b0004f); 
+            color: white; 
+            border-color: var(--primary); 
+            box-shadow: 0 4px 15px var(--primary-glow);
+            transform: scale(1.05);
+            font-weight: 700;
+        }
+
+        .btn-full { width: 100%; padding: 14px; background: linear-gradient(90deg, var(--primary), #b0004f); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 700; margin-top: 15px; box-shadow: 0 5px 15px rgba(255, 0, 127, 0.3); }
+        .btn-row { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-half { flex: 1; padding: 12px; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; }
+        .btn-sec { background: rgba(255,255,255,0.1); color: white; border: 1px solid var(--card-border); }
+        
+        /* Config List */
+        .config-list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .cat-info { display: flex; align-items: center; gap: 10px; }
+        .cat-color-dot { width: 14px; height: 14px; border-radius: 50%; box-shadow: 0 0 5px currentColor; }
+        .cat-btn { font-size: 0.75rem; padding: 6px 12px; border-radius: 8px; border: none; cursor: pointer; margin-left: 5px; transition: 0.2s; }
+        .cat-btn:hover { transform: scale(1.1); }
+        .btn-del { background: rgba(255, 46, 99, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+
+        /* Programador Checkboxes */
+        .days-selector { display: flex; justify-content: space-between; margin-top: 10px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; }
+        .day-chk { display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; cursor: pointer; color: var(--text-muted); }
+        .day-chk input { width: 18px; height: 18px; margin-bottom: 5px; accent-color: var(--primary); }
+
+        /* TOAST */
+        #toast { 
+            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); 
+            background: rgba(0,0,0,0.9); 
+            border: 1px solid var(--primary); 
+            color: white; padding: 12px 25px; border-radius: 30px; 
+            font-size: 0.85rem; font-weight: 600; 
+            opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; z-index: 2000; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(-10px); }
+
     </style>
 </head>
 <body>
 
-    <div class="app-container">
-        <!-- CAPA BLANCA PARA LIMPIEZA VISUAL INSTANTÁNEA -->
-        <div id="flashLayer" class="flash-overlay"></div>
+    <header class="main-header">
+        <div class="app-title">
+            <h1>Cronos Day</h1>
+            <p>Edición Oscura</p>
+        </div>
+        <div class="header-actions">
+            <button class="icon-btn" onclick="openScheduleModal()" title="Programar">📅</button>
+            <button class="icon-btn" onclick="openSettingsModal()">⚙️</button>
+            <button class="icon-btn" style="background:var(--primary); border:none; box-shadow: 0 0 15px var(--primary-glow);" onclick="openDateModal()">+</button>
+        </div>
+    </header>
 
-        <header>
-            <div class="title-group">
-                <h1>Cronos Day</h1>
-                <p>Libro de Actividades</p>
+    <div id="mainContainer">
+        <!-- Cuenta Regresiva -->
+        <div class="countdown-section">
+            <div class="countdown-header">
+                <span>⏳ EVENTOS CRÍTICOS</span>
+                <span style="cursor:pointer; color:var(--primary); font-weight:700;" onclick="openCountdownModal()">+ AGREGAR</span>
             </div>
-            <div class="top-controls">
-                <button class="icon-btn" onclick="changeDate(-1)">❮</button>
-                <input type="date" id="datePicker">
-                <button class="icon-btn" onclick="changeDate(1)">❯</button>
-                <button class="icon-btn" onclick="goToToday()">📍</button>
-                <button class="icon-btn" onclick="openHistoryModal()" style="background:var(--text-main); color:white;">📜</button>
-                <button class="icon-btn" onclick="openCatModal()" style="background:#ffeaa7; color: #d63031;">⚙️</button>
-            </div>
-        </header>
-
-        <!-- LISTA DE TAREAS -->
-        <div class="checklist-section">
-            <div class="checklist-header"><h3>📋 Lista del Día</h3></div>
-            <div class="checklist-input-group">
-                <input type="text" id="newTodoInput" class="checklist-input" placeholder="Nueva tarea...">
-                <button class="add-todo-btn" onclick="addTodo()">+</button>
-            </div>
-            <ul class="todo-list" id="todoList"></ul>
+            <div class="countdown-list" id="countdownList"></div>
         </div>
 
-        <!-- Controles Principales -->
-        <div class="controls-grid">
+        <div id="daysContainer"></div>
+    </div>
+
+    <!-- Barra de Acción -->
+    <div id="selectionActionBar" class="hidden">
+        <span id="selCount" style="font-weight:700; color:#fff;">0 bloques</span>
+        <button class="btn-action" onclick="openPaintModal()">✨ PINTAR</button>
+    </div>
+
+    <div id="toast">Notificación</div>
+
+    <!-- MODAL: NUEVO DÍA -->
+    <div class="modal-overlay" id="dateModal">
+        <div class="modal">
+            <h3>Nueva Tablita</h3>
+            <div class="input-group">
+                <label>Seleccionar Fecha</label>
+                <input type="date" id="newDayDate">
+            </div>
+            <div class="btn-row">
+                <button class="btn-half btn-sec" onclick="closeModal('dateModal')">Cancelar</button>
+                <button class="btn-half" style="background:var(--primary); color:white;" onclick="confirmAddDay()">Crear</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: PINTAR -->
+    <div class="modal-overlay" id="paintModal">
+        <div class="modal">
+            <h3>Aplicar Intensidad</h3>
+            <div class="input-group">
+                <label>Categoría</label>
+                <select id="paintCategory" onchange="updateActivitySelect()"></select>
+            </div>
             <div class="input-group">
                 <label>Actividad</label>
-                <input type="text" id="activityName" placeholder="¿Qué haces?">
-                <button class="btn-fav" id="btnAddFav" onclick="toggleFavorite()">☆</button>
+                <select id="paintActivity"></select>
             </div>
             <div class="input-group">
-                <label>Categoría</label>
-                <select id="activityType"></select>
+                <label>Duración del Bloque</label>
+                <div class="intensity-selector">
+                    <div class="intensity-opt active" onclick="setIntensity(100, this)" data-val="100">COMPLETO<br>(10 min)</div>
+                    <div class="intensity-opt" onclick="setIntensity(50, this)" data-val="50">1/2 BLOQUE<br>(5 min)</div>
+                </div>
+                <p style="font-size:0.7rem; color:var(--text-muted); margin-top:10px; text-align:center;">
+                    💡 El modo 1/2 pinta la mitad libre disponible.
+                </p>
             </div>
-            <div style="display:flex; flex-direction:column; gap:5px;">
-                <button id="btnStart" class="btn btn-start" onclick="startActivity()">▶</button>
-                <button id="btnStop" class="btn btn-stop" onclick="stopActivity()">⏹</button>
-            </div>
-            <div style="display:flex; flex-direction:column; align-items:flex-end; justify-content:center;">
-                <span id="clock" style="font-size:0.9rem; font-weight:bold; color:var(--primary);">00:00</span>
+            <div class="btn-row">
+                <button class="btn-half btn-sec" onclick="closeModal('paintModal')">Cancelar</button>
+                <button class="btn-half" style="background:var(--primary); color:white;" onclick="confirmPaint()">CONFIRMAR</button>
             </div>
         </div>
-
-        <div class="favorites-bar" id="favoritesBar"></div>
-
-        <div class="view-controls">
-            <div class="toggle-switch">
-                <div class="toggle-option active" id="opt10m" onclick="setViewMode(10)">10 min</div>
-                <div class="toggle-option" id="opt1m" onclick="setViewMode(1)">1 min</div>
-            </div>
-            <input type="range" min="200" max="1200" value="500" class="zoom-slider" id="zoomSlider">
-        </div>
-
-        <div class="timeline-scroll-area">
-            <div class="timeline-wrapper" id="timelineWrapper"></div>
-        </div>
-
-        <div class="summary" id="summary"></div>
     </div>
 
-    <div id="toast">Guardando datos...</div>
-
-    <!-- Modal Edición -->
-    <div class="modal-overlay" id="editModal">
+    <!-- MODAL: PROGRAMAR -->
+    <div class="modal-overlay" id="scheduleModal">
         <div class="modal">
-            <h3 style="margin-top:0;">Editar Periodo</h3>
-            <p>Seleccionados: <b id="selectedCount">0</b> minutos.</p>
-            <div class="input-group" style="margin: 15px 0;">
-                <label>Nombre de Actividad</label>
-                <input type="text" id="editActivityName" placeholder="Ej: Leer...">
+            <h3>📅 Autoprogramado</h3>
+            <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:15px;">Configura la repetición automática de tus bloques.</p>
+            
+            <div class="input-group">
+                <label>Días de la Semana</label>
+                <div class="days-selector">
+                    <label class="day-chk"><input type="checkbox" value="1">Lun</label>
+                    <label class="day-chk"><input type="checkbox" value="2">Mar</label>
+                    <label class="day-chk"><input type="checkbox" value="3">Mié</label>
+                    <label class="day-chk"><input type="checkbox" value="4">Jue</label>
+                    <label class="day-chk"><input type="checkbox" value="5">Vie</label>
+                    <label class="day-chk"><input type="checkbox" value="6">Sáb</label>
+                    <label class="day-chk"><input type="checkbox" value="0">Dom</label>
+                </div>
             </div>
-            <div class="input-group" style="margin-bottom: 15px;">
-                <label>Categoría</label>
-                <select id="editActivityType"></select>
+
+            <div class="input-group">
+                <label>Horario</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="time" id="schedStart" value="08:00">
+                    <span style="align-self:center; color:var(--text-muted);">→</span>
+                    <input type="time" id="schedEnd" value="10:00">
+                </div>
             </div>
-            <div style="display:flex; gap:10px;">
-                <button class="btn" style="background:#f1f2f6; color:#636e72;" onclick="closeModal()">Cancelar</button>
-                <button class="btn btn-start" onclick="applyEdit()">Guardar</button>
+
+            <div class="input-group">
+                <label>Rango de Fechas</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="date" id="schedDateStart">
+                    <input type="date" id="schedDateEnd">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Actividad</label>
+                <select id="schedCategory" onchange="updateSchedActivity()"></select>
+                <select id="schedActivity" style="margin-top:8px;"></select>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn-half btn-sec" onclick="closeModal('scheduleModal')">Cancelar</button>
+                <button class="btn-half" style="background:var(--primary); color:white;" onclick="confirmSchedule()">EJECUTAR</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal Categorías -->
-    <div class="modal-overlay" id="catModal">
+    <!-- MODAL: CONFIGURACIÓN -->
+    <div class="modal-overlay" id="settingsModal">
         <div class="modal">
-            <h3 style="margin-top:0; color:var(--primary);">Categorías</h3>
-            <div id="catList" style="margin-top:15px; max-height:200px; overflow-y:auto;"></div>
-            <div style="display:flex; gap:10px; margin-top:15px; border-top:1px solid #eee; padding-top:15px;">
-                <input type="text" id="newCatName" placeholder="Nombre" style="flex:1;">
-                <input type="color" id="newCatColor" value="#a8e6cf" style="width:40px; height:35px; border:none; border-radius:6px;">
-                <button class="btn btn-start" onclick="addCategory()">+</button>
+            <h3>Configuración</h3>
+            <div class="input-group">
+                <label>Nueva Categoría</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="newCatName" placeholder="Nombre (Ej: Gimnasio)">
+                    <input type="color" id="newCatColor" value="#ff007f" style="width:50px; padding:0; border:none; border-radius:8px; height:42px; cursor:pointer;">
+                </div>
             </div>
-            <button class="btn" style="width:100%; margin-top:15px; background:#636e72;" onclick="closeCatModal()">Cerrar</button>
+            <button class="btn-full" onclick="addCategory()">CREAR CATEGORÍA</button>
+            
+            <div style="margin-top:20px; border-top:1px solid var(--card-border); padding-top:15px;">
+                <label style="margin-bottom:10px;">MIS CATEGORÍAS:</label>
+                <div id="catListRender"></div>
+            </div>
+            
+            <button class="btn-full btn-sec" style="margin-top:20px;" onclick="closeModal('settingsModal')">CERRAR</button>
         </div>
     </div>
 
-    <!-- Modal Historial -->
-    <div class="modal-overlay" id="historyModal">
-        <div class="modal" style="max-width: 500px;">
-            <h3 style="margin-top:0; color:var(--text-main);">📜 Historial</h3>
-            <p style="font-size:0.8rem; color:#666; margin-bottom:10px;">Últimas actividades.</p>
-            <table class="history-table">
-                <thead><tr><th>Fecha</th><th>Hora</th><th>Actividad</th><th>Acción</th></tr></thead>
-                <tbody id="historyListBody"></tbody>
-            </table>
-            <button class="btn" style="width:100%; margin-top:20px; background:#636e72;" onclick="document.getElementById('historyModal').style.display='none'">Cerrar</button>
+    <!-- MODAL: ACTIVIDADES -->
+    <div class="modal-overlay" id="activityModal">
+        <div class="modal">
+            <h3 id="actModalTitle">Actividades</h3>
+            <div class="input-group">
+                <label>Agregar Actividad</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="newActName" placeholder="Nombre">
+                    <button class="btn-half" style="background:var(--primary); color:white; border-radius:8px;" onclick="addActivity()">+</button>
+                </div>
+            </div>
+            <div id="activityListRender" style="max-height:200px; overflow-y:auto; margin-top:10px;"></div>
+            <button class="btn-full btn-sec" style="margin-top:20px;" onclick="closeModal('activityModal')">VOLVER</button>
         </div>
     </div>
 
-    <div id="tooltip"></div>
+    <!-- MODAL: CUENTA REGRESIVA -->
+    <div class="modal-overlay" id="countdownModal">
+        <div class="modal">
+            <h3>Nuevo Evento Crítico</h3>
+            <div class="input-group">
+                <label>Nombre del Evento</label>
+                <input type="text" id="cdName" placeholder="Examen Final">
+            </div>
+            <div class="input-group">
+                <label>Fecha y Hora Límite</label>
+                <input type="datetime-local" id="cdDate">
+            </div>
+            <div class="btn-row">
+                <button class="btn-half btn-sec" onclick="closeModal('countdownModal')">Cancelar</button>
+                <button class="btn-half" style="background:var(--primary); color:white;" onclick="addCountdown()">GUARDAR</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         // --- FIREBASE ---
@@ -309,473 +535,468 @@
         try { if (!firebase.apps.length) firebase.initializeApp(firebaseConfig); } catch (e) {}
         const db = firebase.firestore();
 
-        function getLocalISODate(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-
         // --- ESTADO ---
         const TOTAL_MINUTES = 1440;
-        const START_HOUR = 0; 
+        let daysData = [];
         
-        let blocks = new Array(TOTAL_MINUTES).fill(null);
-        let selectedDate = getLocalISODate(new Date());
-        let dbDocRef = null;
-        let unsubscribe = null; // Solo para el relojito hoy
-        let isRunning = false;
-        let currentActivity = null;
-        let selectionStart = null;
-        let isSelecting = false;
-        let viewStep = 10;
-
-        // --- CHECKLIST ---
-        let todos = JSON.parse(localStorage.getItem('chronos_todos')) || [];
-        function saveTodos() { localStorage.setItem('chronos_todos', JSON.stringify(todos)); renderTodos(); }
-        function renderTodos() {
-            const list = document.getElementById('todoList'); list.innerHTML = '';
-            todos.forEach((todo, idx) => {
-                const li = document.createElement('li'); li.className = `todo-item ${todo.done ? 'completed' : ''}`;
-                li.innerHTML = `<input type="checkbox" ${todo.done ? 'checked' : ''} onchange="toggleTodo(${idx})"><span>${todo.text}</span><span class="delete-todo" onclick="deleteTodo(${idx})">×</span>`;
-                list.appendChild(li);
-            });
-        }
-        window.addTodo = () => { const input = document.getElementById('newTodoInput'); const text = input.value.trim(); if(!text) return; todos.push({ text: text, done: false }); input.value = ''; saveTodos(); };
-        window.toggleTodo = (idx) => { todos[idx].done = !todos[idx].done; saveTodos(); };
-        window.deleteTodo = (idx) => { todos.splice(idx, 1); saveTodos(); };
-
-        // --- FAVORITOS ---
-        let favorites = JSON.parse(localStorage.getItem('chronos_favorites')) || [];
-        function saveFavorites() { localStorage.setItem('chronos_favorites', JSON.stringify(favorites)); renderFavorites(); }
-        function renderFavorites() {
-            const bar = document.getElementById('favoritesBar'); bar.innerHTML = '';
-            if(favorites.length === 0) { bar.innerHTML = '<div style="font-size:0.75rem; color:#aaa; display:flex; align-items:center;">Sin favoritos</div>'; return; }
-            favorites.forEach((fav, idx) => {
-                const cat = categories.find(c => c.id === fav.catId); const color = cat ? cat.color : '#ccc';
-                const chip = document.createElement('div'); chip.className = 'chip';
-                chip.innerHTML = `<div class="chip-color" style="background:${color}"></div><span>${fav.name}</span><span class="chip-close" onclick="event.stopPropagation(); removeFavorite(${idx})">×</span>`;
-                chip.onclick = () => selectFavorite(fav); bar.appendChild(chip);
-            });
-        }
-        window.toggleFavorite = function() {
-            const name = document.getElementById('activityName').value.trim(); const catId = document.getElementById('activityType').value;
-            if(!name) return; if(favorites.find(f => f.name.toLowerCase() === name.toLowerCase())) return alert("Ya existe");
-            favorites.push({ name, catId }); saveFavorites(); document.getElementById('btnAddFav').classList.add('active');
-        };
-        window.removeFavorite = (idx) => { favorites.splice(idx, 1); saveFavorites(); };
-        function selectFavorite(fav) { document.getElementById('activityName').value = fav.name; document.getElementById('activityType').value = fav.catId; };
-
-        // --- CATEGORÍAS ---
-        const defaultCats = [
-            { id: 'prod', name: 'Productivo', color: '#a8e6cf' }, { id: 'est', name: 'Estudio', color: '#dcedc1' }, 
-            { id: 'sal', name: 'Salud', color: '#ffaaa5' }, { id: 'oci', name: 'Ocio', color: '#ffd3b6' }, { id: 'otr', name: 'Otro', color: '#d291bc' }         
+        // Categorías con colores neón por defecto para el tema oscuro
+        let categories = JSON.parse(localStorage.getItem('cd_categories')) || [
+            { id: 'c1', name: 'Estudio', color: '#00f260', activities: ['Leer', 'Deberes', 'Proyecto'] }, // Verde Neón
+            { id: 'c2', name: 'Ocio', color: '#f7971e', activities: ['Videojuegos', 'Película'] }, // Naranja Fuego
+            { id: 'c3', name: 'Deporte', color: '#00c6ff', activities: ['Gimnasio', 'Correr'] }, // Azul Eléctrico
+            { id: 'c4', name: 'Trabajo', color: '#8e2de2', activities: ['Oficina', 'Reunión'] }, // Violeta
+            { id: 'c5', name: 'Arte', color: '#ff0099', activities: ['Dibujo', 'Música'] } // Rosa Intenso
         ];
-        let categories = JSON.parse(localStorage.getItem('chronos_categories')) || defaultCats;
-        function saveCategories() { localStorage.setItem('chronos_categories', JSON.stringify(categories)); renderCategorySelects(); renderCategoryList(); renderFavorites(); renderGridColors(); }
-        function renderCategorySelects() {
-            const selects = [document.getElementById('activityType'), document.getElementById('editActivityType')];
-            selects.forEach(sel => { sel.innerHTML = ''; categories.forEach(cat => { const opt = document.createElement('option'); opt.value = cat.id; opt.innerText = cat.name; sel.appendChild(opt); }); });
-        }
-        function renderCategoryList() {
-            const list = document.getElementById('catList'); list.innerHTML = '';
-            categories.forEach((cat, idx) => {
-                const div = document.createElement('div'); div.style.cssText = "display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;";
-                div.innerHTML = `<span style="display:flex;align-items:center;gap:8px;"><div style="width:15px;height:15px;background:${cat.color};border-radius:3px;"></div>${cat.name}</span><button onclick="deleteCat(${idx})" style="color:red;border:none;background:none;cursor:pointer;">×</button>`;
-                list.appendChild(div);
-            });
-        }
-        window.deleteCat = (i) => { categories.splice(i, 1); saveCategories(); };
-        window.addCategory = () => {
-            const n = document.getElementById('newCatName').value.trim(); const c = document.getElementById('newCatColor').value;
-            if(!n) return; categories.push({ id: 'c_'+Date.now(), name: n, color: c }); document.getElementById('newCatName').value = ''; saveCategories();
-        };
-        window.openCatModal = () => document.getElementById('catModal').style.display = 'flex';
-        window.closeCatModal = () => document.getElementById('catModal').style.display = 'none';
 
-        // --- GRID & VIEW ---
-        const timelineWrapper = document.getElementById('timelineWrapper');
+        let events = JSON.parse(localStorage.getItem('cd_events')) || [];
+        let currentEditingCatId = null;
+        let currentPaintIntensity = 100; 
+
+        const userDocRef = db.collection("cronos_users").doc("user_timeline_dark_v1");
+
+        // --- INIT ---
         function init() {
-            renderCategorySelects(); renderCategoryList(); renderFavorites(); renderTodos();
-            document.getElementById('datePicker').value = selectedDate;
-            createGridStructure(); 
-            loadFromFirebase(); // Carga inicial
-            setInterval(updateTimeLoop, 1000); updateTimeLoop();
-            document.getElementById('zoomSlider').addEventListener('input', (e) => {
-                const width = e.target.value; const containers = document.querySelectorAll('.minutes-container');
-                containers.forEach(c => c.style.minWidth = width + 'px');
-            });
-        }
-        window.setViewMode = function(step) {
-            viewStep = step; document.getElementById('opt1m').classList.toggle('active', step === 1);
-            document.getElementById('opt10m').classList.toggle('active', step === 10);
-            timelineWrapper.classList.toggle('view-10min', step === 10); timelineWrapper.classList.toggle('view-1min', step === 1); createGridStructure();
-        };
-        function createGridStructure() {
-            timelineWrapper.innerHTML = ''; const hoursOrder = [];
-            for(let i=0; i<24; i++) hoursOrder.push((START_HOUR + i) % 24);
-            hoursOrder.forEach(hour => {
-                const row = document.createElement('div'); row.className = 'hour-row'; row.id = `hour-${hour}`;
-                const label = document.createElement('div'); label.className = 'hour-label'; label.innerText = String(hour).padStart(2,'0'); row.appendChild(label);
-                const minContainer = document.createElement('div'); minContainer.className = 'minutes-container';
-                const totalBlocks = (viewStep === 1) ? 60 : 6;
-                for(let i=0; i<totalBlocks; i++) {
-                    const realStart = (hour * 60) + (i * viewStep); const block = document.createElement('div');
-                    block.className = 'block bg-dead'; block.dataset.start = realStart; block.dataset.end = realStart + (viewStep - 1);
-                    block.addEventListener('mouseenter', (e) => showTooltip(e, realStart)); block.addEventListener('mouseleave', hideTooltip);
-                    block.addEventListener('mousedown', () => startSelection(realStart)); block.addEventListener('mouseenter', () => { if(isSelecting) updateSelectionVisual(realStart); });
-                    minContainer.appendChild(block);
-                }
-                row.appendChild(minContainer); timelineWrapper.appendChild(row);
-            });
-            renderGridColors(); const width = document.getElementById('zoomSlider').value;
-            document.querySelectorAll('.minutes-container').forEach(c => c.style.minWidth = width + 'px');
-        }
-        function renderGridColors() {
-            document.querySelectorAll('.block').forEach(block => {
-                const s = parseInt(block.dataset.start); const e = parseInt(block.dataset.end); let color = null;
-                for(let k=s; k<=e; k++) { if(blocks[k] && blocks[k].catId) { const cat = categories.find(c => c.id === blocks[k].catId); if(cat) { color = cat.color; break; } } }
-                block.className = 'block'; if(color) block.style.backgroundColor = color; else block.classList.add('bg-dead');
-            });
+            document.getElementById('newDayDate').value = new Date().toISOString().split('T')[0];
+            const today = new Date();
+            const future = new Date();
+            future.setMonth(future.getMonth() + 4);
+            document.getElementById('schedDateStart').value = today.toISOString().split('T')[0];
+            document.getElementById('schedDateEnd').value = future.toISOString().split('T')[0];
+
+            loadDaysFromFirebase();
+            renderCountdowns();
+            setInterval(renderCountdowns, 1000);
         }
 
-        function forceClearScreen() {
-            // Limpieza profunda del DOM para asegurar que no queden colores visuales
-            document.querySelectorAll('.block').forEach(b => {
-                b.style.backgroundColor = '';
-                b.className = 'block bg-dead';
-            });
-            document.querySelectorAll('.is-now').forEach(e => e.classList.remove('is-now'));
-            document.querySelectorAll('.hour-row').forEach(r => r.classList.remove('is-current'));
-        }
+        // --- LÓGICA DE DÍAS ---
+        function openDateModal() { document.getElementById('dateModal').style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         
-        function triggerFlash() {
-            const flash = document.getElementById('flashLayer');
-            flash.classList.add('flash-active');
-            setTimeout(() => flash.classList.remove('flash-active'), 150); // Flash rápido pero visible
+        function confirmAddDay() {
+            const dateStr = document.getElementById('newDayDate').value;
+            if(!dateStr) return;
+            if(daysData.find(d => d.dateStr === dateStr)) { showToast("El día ya existe"); closeModal('dateModal'); return; }
+            const newDay = { id: 'd_'+Date.now(), dateStr: dateStr, blocks: new Array(TOTAL_MINUTES).fill(null), tasks: [] };
+            daysData.push(newDay);
+            sortDays();
+            saveDaysToFirebase();
+            renderAllDays();
+            closeModal('dateModal');
+            setTimeout(() => { const el = document.getElementById(`card-${newDay.id}`); if(el) el.scrollIntoView({behavior: "smooth", block: "center"}); }, 100);
         }
 
-        // --- SISTEMA DE CARGA HÍBRIDO (PÁGINA ESTÁTICA) ---
-        function loadFromFirebase() {
-            // 1. Efecto visual de "Nueva Página"
-            triggerFlash();
+        function sortDays() { daysData.sort((a, b) => b.dateStr.localeCompare(a.dateStr)); }
 
-            // 2. Limpiar memoria y pantalla inmediatamente
-            forceClearScreen();
-            blocks = new Array(TOTAL_MINUTES).fill(null);
+        // --- RENDERIZADO ---
+        function renderAllDays() {
+            const container = document.getElementById('daysContainer');
+            container.innerHTML = '';
+            if(daysData.length === 0) container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted); font-style:italic;">Sin días registrados. Agrega una nueva tablita.</div>';
 
-            // 3. Referencia
-            dbDocRef = db.collection("chronos_final").doc(selectedDate);
-
-            const todayStr = getLocalISODate(new Date());
-            const isToday = (selectedDate === todayStr);
-
-            // 4. CARGA ESTÁTICA (GET) para la información de la página
-            // Esto evita el parpadeo de sincronización constante
-            dbDocRef.get().then(doc => {
-                if(doc.exists() && doc.data().blocks) {
-                    // Clonar datos para evitar referencias
-                    blocks = [...doc.data().blocks];
-                    console.log(`Página cargada: ${selectedDate}`);
-                } else {
-                    console.log(`Página nueva: ${selectedDate}`);
+            daysData.forEach((day, index) => {
+                if (index + 1 < daysData.length) {
+                    const prevDay = daysData[index + 1];
+                    const pending = (prevDay.tasks || []).filter(t => !t.done);
+                    pending.forEach(pt => {
+                        if (!day.tasks.find(dt => dt.text === pt.text)) {
+                            day.tasks.push({ text: pt.text, done: false, carried: true });
+                        }
+                    });
                 }
-                
-                // 5. Renderizar la información estática
-                renderGridColors(); 
-                updateSummary();
-
-                // 6. SOLO si es Hoy, iniciamos el relojito en vivo
-                if(isToday) {
-                    startClockListener();
-                } else {
-                    stopClockListener();
-                }
-
-            }).catch(err => {
-                console.error("Error cargando:", err);
+                createDayCard(day, container);
             });
         }
 
-        // Funciones separadas para el relojito (Solo hoy)
-        function startClockListener() {
-            if(unsubscribe) unsubscribe(); // Evitar duplicados
-            unsubscribe = dbDocRef.onSnapshot(d => {
-                // El relojito solo actualiza si cambian datos, pero no redibuja todo todo el rato
-                if(d.exists() && d.data().blocks) {
-                    blocks = [...d.data().blocks];
-                    renderGridColors(); 
-                    updateSummary(); // Actualizar resumen si alguien más edita esta fecha hoy
+        function createDayCard(day, container) {
+            const card = document.createElement('div');
+            card.className = 'day-card';
+            card.id = `card-${day.id}`;
+            const [y,m,d] = day.dateStr.split('-');
+            const dateObj = new Date(y, m-1, d);
+            const dateStr = dateObj.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
+
+            let tasksHtml = '';
+            (day.tasks || []).forEach((t, idx) => {
+                tasksHtml += `<li class="task-item ${t.done ? 'done' : ''}"><span class="task-check" onclick="toggleTask('${day.id}', ${idx})">${t.done ? '✔' : '○'}</span><span>${t.text}</span><span class="task-del" onclick="deleteTask('${day.id}', ${idx})">×</span></li>`;
+            });
+
+            let gridHtml = '';
+            for(let h=0; h<24; h++) {
+                gridHtml += `<div class="hour-row"><div class="hour-label">${h}</div><div class="minutes-container">`;
+                for(let m=0; m<6; m++) {
+                    const start = (h*60)+(m*10);
+                    const end = start+9;
+                    gridHtml += `<div class="block" data-day="${day.id}" data-s="${start}" data-e="${end}" onclick="toggleBlock(this)" ondblclick="clearBlock(this)"></div>`;
                 }
+                gridHtml += `</div></div>`;
+            }
+
+            card.innerHTML = `
+                <div class="card-header"><span class="card-date">${dateStr}</span><span class="card-stats" id="stats-${day.id}">0 min</span></div>
+                <div class="tasks-section">
+                    <div class="tasks-input-group">
+                        <input type="text" class="task-input" placeholder="Nueva tarea..." onkeypress="if(event.key==='Enter') addTask('${day.id}', this)">
+                        <button class="add-task-btn" onclick="addTask('${day.id}', this.previousElementSibling)">+</button>
+                    </div>
+                    <ul class="task-list" id="tasks-${day.id}">${tasksHtml}</ul>
+                </div>
+                <div class="timeline-scroll-area"><div class="timeline-wrapper" id="grid-${day.id}">${gridHtml}</div></div>
+            `;
+            container.appendChild(card);
+            refreshVisuals(day.id);
+        }
+
+        // --- TAREAS ---
+        function addTask(dayId, inputEl) {
+            const text = inputEl.value.trim();
+            if(!text) return;
+            const day = daysData.find(d => d.id === dayId);
+            if(day) { day.tasks.push({ text: text, done: false }); inputEl.value = ''; saveDaysToFirebase(); updateTasksUI(dayId); }
+        }
+        function toggleTask(dayId, idx) {
+            const day = daysData.find(d => d.id === dayId);
+            if(day) { day.tasks[idx].done = !day.tasks[idx].done; saveDaysToFirebase(); updateTasksUI(dayId); }
+        }
+        function deleteTask(dayId, idx) {
+            const day = daysData.find(d => d.id === dayId);
+            if(day) { day.tasks.splice(idx, 1); saveDaysToFirebase(); updateTasksUI(dayId); }
+        }
+        function updateTasksUI(dayId) {
+            const day = daysData.find(d => d.id === dayId);
+            const ul = document.getElementById(`tasks-${dayId}`);
+            ul.innerHTML = '';
+            (day.tasks || []).forEach((t, idx) => {
+                const li = document.createElement('li');
+                li.className = `task-item ${t.done ? 'done' : ''}`;
+                li.innerHTML = `<span class="task-check" onclick="toggleTask('${dayId}', ${idx})">${t.done ? '✔' : '○'}</span><span>${t.text}</span><span class="task-del" onclick="deleteTask('${dayId}', ${idx})">×</span>`;
+                ul.appendChild(li);
             });
         }
 
-        function stopClockListener() {
-            if(unsubscribe) {
-                unsubscribe();
-                unsubscribe = null;
+        // --- GRID & SELECCIÓN ---
+        function toggleBlock(el) {
+            el.classList.toggle('selected');
+            updateActionBar();
+        }
+        function updateActionBar() {
+            const count = document.querySelectorAll('.block.selected').length;
+            const bar = document.getElementById('selectionActionBar');
+            document.getElementById('selCount').innerText = count + " bloques";
+            bar.classList.toggle('hidden', count === 0);
+        }
+
+        // --- BORRAR DOBLE CLICK ---
+        function clearBlock(el) {
+            const dayId = el.dataset.day;
+            const s = parseInt(el.dataset.s);
+            const e = parseInt(el.dataset.e);
+            const day = daysData.find(d => d.id === dayId);
+            if(day) {
+                for(let k=s; k<=e; k++) day.blocks[k] = null;
+                saveDaysToFirebase();
+                refreshVisuals(dayId);
+                showToast("Borrado");
             }
         }
 
-        function saveToFirebase() {
-            if(!dbDocRef) return;
-            dbDocRef.set({ blocks, lastUpdated: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+        // --- PINTADO (1/2 INTELIGENTE) ---
+        function openPaintModal() {
+            renderCategorySelect();
+            setIntensity(100, document.querySelector('.intensity-opt'));
+            document.getElementById('paintModal').style.display = 'flex';
         }
 
-        // --- MANEJO DE FECHAS ---
-        document.getElementById('datePicker').addEventListener('change', (e) => {
-            selectedDate = e.target.value;
-            dbDocRef = db.collection("chronos_final").doc(selectedDate);
-            loadFromFirebase(); // Recargar página estática
-        });
-
-        window.changeDate = (d) => {
-            const [y, m, day] = selectedDate.split('-').map(Number);
-            const dateObj = new Date(y, m - 1, day);
-            dateObj.setDate(dateObj.getDate() + d);
-            selectedDate = getLocalISODate(dateObj);
-            document.getElementById('datePicker').value = selectedDate;
-            dbDocRef = db.collection("chronos_final").doc(selectedDate);
-            loadFromFirebase();
-        };
-
-        window.goToToday = () => {
-            selectedDate = getLocalISODate(new Date());
-            document.getElementById('datePicker').value = selectedDate;
-            dbDocRef = db.collection("chronos_final").doc(selectedDate);
-            loadFromFirebase();
-        };
-
-        // --- LOGIC ---
-        function updateTimeLoop() {
-            const now = new Date();
-            const nowStr = getLocalISODate(now);
-            document.getElementById('clock').innerText = now.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'});
-            if(selectedDate === nowStr) {
-                const h = now.getHours(); const m = now.getMinutes(); const globalMin = (h*60)+m;
-                document.querySelectorAll('.is-now').forEach(e => e.classList.remove('is-now'));
-                document.querySelectorAll('.hour-row').forEach(r => r.classList.remove('is-current'));
-                const block = Array.from(document.querySelectorAll('.block')).find(b => { const s = parseInt(b.dataset.start); const e = parseInt(b.dataset.end); return globalMin >= s && globalMin <= e; });
-                if(block) block.classList.add('is-now');
-                const row = document.getElementById(`hour-${h}`); if(row) row.classList.add('is-current');
-                if(isRunning && currentActivity) {
-                    if(!blocks[globalMin] || blocks[globalMin].catId !== currentActivity.catId) {
-                        updateBlock(globalMin, { catId: currentActivity.catId, name: currentActivity.name });
-                    }
-                }
-            }
+        function setIntensity(val, el) {
+            currentPaintIntensity = val;
+            document.querySelectorAll('.intensity-opt').forEach(d => d.classList.remove('active'));
+            el.classList.add('active');
         }
 
-        function showToast(message) {
-            const x = document.getElementById("toast");
-            x.innerText = message;
-            x.className = "show";
-            setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+        function renderCategorySelect() {
+            const s = document.getElementById('paintCategory');
+            const sSched = document.getElementById('schedCategory');
+            s.innerHTML = ''; sSched.innerHTML = '';
+            categories.forEach(c => {
+                const o = document.createElement('option'); o.value = c.id; o.innerText = c.name; s.appendChild(o);
+                const o2 = o.cloneNode(true); sSched.appendChild(o2);
+            });
+            updateActivitySelect();
+            updateSchedActivity();
         }
 
-        function updateBlock(idx, data) {
-            blocks[idx] = data;
-            const block = Array.from(document.querySelectorAll('.block')).find(b => { const s = parseInt(b.dataset.start); const e = parseInt(b.dataset.end); return idx >= s && idx <= e; });
-            if(block) {
-                block.className = 'block';
-                if(data && data.catId) { const c = categories.find(x => x.id === data.catId); if(c) block.style.backgroundColor = c.color; else block.classList.add('bg-dead'); }
-                else block.classList.add('bg-dead');
-            }
-            saveToFirebase(); updateSummary();
+        function updateActivitySelect() {
+            const catId = document.getElementById('paintCategory').value;
+            const actSel = document.getElementById('paintActivity');
+            actSel.innerHTML = '';
+            const cat = categories.find(c => c.id === catId);
+            if(cat && cat.activities) {
+                cat.activities.forEach(a => { actSel.innerHTML += `<option value="${a}">${a}</option>`; });
+            } else { actSel.innerHTML += `<option value="${cat ? cat.name : 'Gen'}">${cat ? cat.name : 'General'}</option>`; }
         }
 
-        window.startActivity = () => {
-            const n = document.getElementById('activityName').value.trim(); const t = document.getElementById('activityType').value;
-            if(!n) return alert("Escribe actividad"); currentActivity = { catId: t, name: n }; isRunning = true;
-            document.getElementById('btnStart').style.display = 'none'; document.getElementById('btnStop').style.display = 'flex';
-            document.getElementById('activityName').disabled = true; document.getElementById('activityType').disabled = true;
-        };
-        window.stopActivity = () => {
-            isRunning = false; currentActivity = null; document.getElementById('btnStart').style.display = 'flex'; document.getElementById('btnStop').style.display = 'none';
-            document.getElementById('activityName').disabled = false; document.getElementById('activityType').disabled = false; document.getElementById('activityName').value = '';
-        };
-        document.addEventListener('mouseup', () => { if(isSelecting) { isSelecting = false; if(document.querySelectorAll('.selected').length > 0) openEditModal(); } });
-        function startSelection(idx) { isSelecting = true; selectionStart = idx; updateSelectionVisual(idx); }
-        function updateSelectionVisual(curr) {
-            document.querySelectorAll('.selected').forEach(b => b.classList.remove('selected')); const start = Math.min(selectionStart, curr); const end = Math.max(selectionStart, curr);
-            for(let i=start; i<=end; i++) { const block = Array.from(document.querySelectorAll('.block')).find(b => { const s = parseInt(b.dataset.start); const e = parseInt(b.dataset.end); return i >= s && i <= e; }); if(block) block.classList.add('selected'); }
-        }
-        const modal = document.getElementById('editModal');
-        function openEditModal() {
-            const sel = document.querySelectorAll('.selected'); let total = 0; let firstData = null;
-            sel.forEach(el => { const s = parseInt(el.dataset.start); const e = parseInt(el.dataset.end); total += (e - s + 1); if(!firstData) firstData = blocks[s]; });
-            document.getElementById('selectedCount').innerText = total;
-            if(firstData && firstData.name) document.getElementById('editActivityName').value = firstData.name; else document.getElementById('editActivityName').value = "";
-            if(firstData && firstData.catId) document.getElementById('editActivityType').value = firstData.catId;
-            modal.style.display = 'flex';
-        }
-        window.closeModal = () => { modal.style.display = 'none'; document.querySelectorAll('.selected').forEach(b => b.classList.remove('selected')); };
-        
-        function saveToLog(startMin, endMin, name, catId) {
-            if(!name && !catId) return;
-            db.collection("activity_log").add({
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                date: selectedDate,
-                startMin: startMin,
-                endMin: endMin,
-                activityName: name,
-                catId: catId
-            }).catch(err => console.error("Error log:", err));
-        }
+        function confirmPaint() {
+            const catId = document.getElementById('paintCategory').value;
+            const cat = categories.find(c => c.id === catId);
+            const activityName = document.getElementById('paintActivity').value || (cat ? cat.name : "Act");
+            const color = cat ? cat.color : '#555';
 
-        window.applyEdit = () => {
-            const catId = document.getElementById('editActivityType').value; 
-            const name = document.getElementById('editActivityName').value.trim();
-            const catName = categories.find(c=>c.id===catId)?.name || "Actividad";
+            const blocks = document.querySelectorAll('.block.selected');
+            const affectedDays = new Set();
 
-            showToast("Guardando...");
-
-            let minStart = 1440;
-            let maxEnd = 0;
-
-            document.querySelectorAll('.selected').forEach(el => {
-                const s = parseInt(el.dataset.start); 
-                const e = parseInt(el.dataset.end);
+            blocks.forEach(b => {
+                const dayId = b.dataset.day;
+                const s = parseInt(b.dataset.s);
+                const e = parseInt(b.dataset.e);
+                const day = daysData.find(d => d.id === dayId);
                 
-                if(s < minStart) minStart = s;
-                if(e > maxEnd) maxEnd = e;
+                if(day) {
+                    affectedDays.add(dayId);
+                    
+                    if(currentPaintIntensity == 100) {
+                        for(let k=s; k<=e; k++) day.blocks[k] = { catId, name: activityName, color };
+                    } else if (currentPaintIntensity == 50) {
+                        let firstHalfFilled = false;
+                        for(let k=s; k<=s+4; k++) { if(day.blocks[k]) firstHalfFilled = true; }
+                        let secondHalfFilled = false;
+                        for(let k=s+5; k<=e; k++) { if(day.blocks[k]) secondHalfFilled = true; }
 
-                for(let k=s; k<=e; k++) { 
-                    if(catId === 'dead') {
-                        blocks[k] = null;
-                    } else {
-                        blocks[k] = { catId: catId, name: name || catName }; 
-                    }
-                    const block = document.querySelector(`.block[data-start="${k}"]`);
-                    if(block) {
-                        block.className = 'block';
-                        if(catId !== 'dead' && blocks[k]) {
-                            const c = categories.find(x => x.id === catId); 
-                            if(c) block.style.backgroundColor = c.color; 
-                            else block.classList.add('bg-dead');
+                        if(!firstHalfFilled) {
+                            for(let k=s; k<=s+4; k++) day.blocks[k] = { catId, name: activityName, color };
+                        } else if (!secondHalfFilled) {
+                            for(let k=s+5; k<=e; k++) day.blocks[k] = { catId, name: activityName, color };
                         } else {
-                            block.classList.add('bg-dead');
+                            for(let k=s; k<=s+4; k++) day.blocks[k] = { catId, name: activityName, color };
+                            showToast("Sobrescribiendo 1ª mitad");
                         }
                     }
                 }
+                b.classList.remove('selected');
             });
 
-            saveToFirebase();
-            updateSummary();
-            
-            if(catId !== 'dead') {
-                saveToLog(minStart, maxEnd, name || catName, catId);
-            }
-
-            closeModal();
-            setTimeout(() => showToast("¡Guardado!"), 500);
-        };
-
-        function showTooltip(e, s) {
-            const data = blocks[s]; const h = Math.floor(s/60); const m = s%60; const timeStr = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-            let txt = `<strong>${timeStr}</strong>`;
-            if(data && data.catId) { const displayName = data.name || (categories.find(c => c.id === data.catId)?.name); if(displayName) txt += `<br>${displayName}`; }
-            const tt = document.getElementById('tooltip'); tt.innerHTML = txt; tt.style.display = 'block'; tt.style.left = (e.pageX + 10) + 'px'; tt.style.top = (e.pageY + 10) + 'px';
-        }
-        function hideTooltip() { document.getElementById('tooltip').style.display = 'none'; }
-        function updateSummary() {
-            const counts = {}; let active = 0;
-            blocks.forEach(b => { if(b && b.catId) { counts[b.catId] = (counts[b.catId]||0)+1; active++; } });
-            const container = document.getElementById('summary'); container.innerHTML = '';
-            Object.keys(counts).forEach(catId => {
-                const cat = categories.find(c => c.id === catId);
-                if(cat) {
-                    const pct = Math.round((counts[catId] / TOTAL_MINUTES) * 100);
-                    container.innerHTML += `
-                        <div class="stat-card">
-                            <div class="stat-header"><span><span class="color-dot" style="background:${cat.color}"></span>${cat.name}</span><b>${counts[catId]}m</b></div>
-                            <div class="progress-bg"><div class="progress-fill" style="width:${pct}%; background:${cat.color}"></div></div>
-                        </div>`;
-                }
-            });
-            const dead = TOTAL_MINUTES - active; container.innerHTML += `<div class="stat-card"><div class="stat-header"><span>Libre</span><b>${dead}m</b></div></div>`;
+            saveDaysToFirebase();
+            affectedDays.forEach(id => refreshVisuals(id));
+            updateActionBar();
+            closeModal('paintModal');
+            showToast("¡Aplicado!");
         }
 
-        // --- HISTORIAL ---
-        window.openHistoryModal = () => {
-            document.getElementById('historyModal').style.display = 'flex';
-            const listBody = document.getElementById('historyListBody');
-            listBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Cargando...</td></tr>';
-
-            db.collection('activity_log')
-            .orderBy('timestamp', 'desc')
-            .limit(20)
-            .get()
-            .then(snapshot => {
-                listBody.innerHTML = '';
-                if(snapshot.empty) {
-                    listBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Sin registros.</td></tr>';
-                    return;
-                }
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const startH = Math.floor(data.startMin / 60);
-                    const startM = data.startMin % 60;
-                    const endH = Math.floor(data.endMin / 60);
-                    const endM = data.endMin % 60;
-                    const timeStr = `${String(startH).padStart(2,'0')}:${String(startM).padStart(2,'0')} - ${String(endH).padStart(2,'0')}:${String(endM).padStart(2,'0')}`;
-
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${data.date}</td>
-                        <td>${timeStr}</td>
-                        <td><strong>${data.activityName || '-'}</strong></td>
-                        <td>
-                            <button class="action-btn btn-edit" onclick="editFromHistory('${data.date}', ${data.startMin}, ${data.endMin})">Editar</button>
-                            <button class="action-btn btn-del" onclick="deleteHistoryLog('${doc.id}')">X</button>
-                        </td>
-                    `;
-                    listBody.appendChild(row);
-                });
-            }).catch(err => {
-                listBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Error</td></tr>';
-            });
-        };
-
-        window.deleteHistoryLog = (docId) => {
-            if(confirm("¿Borrar registro?")) {
-                db.collection('activity_log').doc(docId).delete().then(() => openHistoryModal());
-            }
-        };
-
-        window.editFromHistory = (dateStr, sMin, eMin) => {
-            document.getElementById('historyModal').style.display = 'none';
-            selectedDate = dateStr;
-            document.getElementById('datePicker').value = selectedDate;
-            dbDocRef = db.collection("chronos_final").doc(selectedDate);
-            triggerFlash();
-            loadFromFirebaseAndSelect(sMin, eMin);
-        };
-
-        function loadFromFirebaseAndSelect(targetStart, targetEnd) {
-            if(unsubscribe) unsubscribe(); 
-            forceClearScreen();
-            blocks = new Array(TOTAL_MINUTES).fill(null);
+        function refreshVisuals(dayId) {
+            const day = daysData.find(d => d.id === dayId);
+            if(!day) return;
+            const blocks = document.querySelectorAll(`.block[data-day="${dayId}"]`);
+            let totalActive = 0;
             
-            // Carga estática para viajar en el tiempo
-            dbDocRef.get().then(d => {
-                if(d.exists() && d.data().blocks) blocks = d.data().blocks;
-                renderGridColors(); updateSummary();
-                selectRangeAndOpen(targetStart, targetEnd);
+            blocks.forEach(b => {
+                const s = parseInt(b.dataset.s);
+                const e = parseInt(b.dataset.e);
                 
-                // Si la fecha a la que viajamos es HOY, reactivar relojito
-                const todayStr = getLocalISODate(new Date());
-                if(selectedDate === todayStr) startClockListener();
+                let color1 = null, color2 = null;
+                let lastName = "";
+
+                // Check 1st half
+                for(let k=s; k<=s+4; k++) {
+                    if(day.blocks[k]) {
+                        const c = categories.find(x => x.id === day.blocks[k].catId);
+                        if(c) { color1 = c.color; lastName = day.blocks[k].name; break; }
+                    }
+                }
+                // Check 2nd half
+                for(let k=s+5; k<=e; k++) {
+                    if(day.blocks[k]) {
+                        const c = categories.find(x => x.id === day.blocks[k].catId);
+                        if(c) { color2 = c.color; lastName = day.blocks[k].name; break; }
+                    }
+                }
+
+                b.className = 'block';
+                if(color1 || color2) {
+                    let bg = "";
+                    if(color1 && !color2) bg = color1; 
+                    else if(!color1 && color2) bg = `linear-gradient(90deg, transparent 50%, ${color2} 50%)`; 
+                    else if(color1 && color2) bg = `linear-gradient(90deg, ${color1} 50%, ${color2} 50%)`; 
+                    
+                    b.style.background = bg;
+                    for(let k=s; k<=e; k++) if(day.blocks[k]) totalActive++;
+                    b.title = lastName;
+                } else {
+                    b.style.background = '';
+                    b.title = '';
+                }
             });
+            document.getElementById(`stats-${day.id}`).innerText = totalActive + " min";
         }
 
-        function selectRangeAndOpen(s, e) {
-            document.querySelectorAll('.block').forEach(b => {
-                const bS = parseInt(b.dataset.start);
-                const bE = parseInt(b.dataset.end);
-                if(bS >= s && bE <= e) b.classList.add('selected');
+        // --- PROGRAMADOR ---
+        function openScheduleModal() { document.getElementById('scheduleModal').style.display = 'flex'; }
+        function updateSchedActivity() {
+            const catId = document.getElementById('schedCategory').value;
+            const actSel = document.getElementById('schedActivity');
+            actSel.innerHTML = '';
+            const cat = categories.find(c => c.id === catId);
+            if(cat && cat.activities) cat.activities.forEach(a => actSel.innerHTML += `<option value="${a}">${a}</option>`);
+        }
+
+        function confirmSchedule() {
+            const selectedDays = [];
+            document.querySelectorAll('.days-selector input:checked').forEach(cb => selectedDays.push(parseInt(cb.value));
+            if(selectedDays.length === 0) { showToast("Elige días"); return; }
+            const startDateStr = document.getElementById('schedDateStart').value;
+            const endDateStr = document.getElementById('schedDateEnd').value;
+            const startTime = document.getElementById('schedStart').value;
+            const endTime = document.getElementById('schedEnd').value;
+            if(!startDateStr || !endDateStr || !startTime || !endTime) { showToast("Datos incompletos"); return; }
+
+            const [sh, sm] = startTime.split(':').map(Number);
+            const [eh, em] = endTime.split(':').map(Number);
+            const startMin = sh * 60 + sm;
+            const endMin = eh * 60 + em;
+
+            const catId = document.getElementById('schedCategory').value;
+            const cat = categories.find(c => c.id === catId);
+            const actName = document.getElementById('schedActivity').value || (cat?cat.name:"Prog");
+
+            let current = new Date(startDateStr + "T00:00:00");
+            const end = new Date(endDateStr + "T23:59:59");
+            let createdCount = 0;
+
+            while(current <= end) {
+                const dayOfWeek = current.getDay(); 
+                if(selectedDays.includes(dayOfWeek)) {
+                    const dateStr = current.toISOString().split('T')[0];
+                    let day = daysData.find(d => d.dateStr === dateStr);
+                    if(!day) {
+                        day = { id: 'd_'+Date.now() + Math.random(), dateStr: dateStr, blocks: new Array(TOTAL_MINUTES).fill(null), tasks: [] };
+                        daysData.push(day);
+                        createdCount++;
+                    }
+                    for(let k=startMin; k<endMin; k++) {
+                        day.blocks[k] = { catId, name: actName, color: cat.color };
+                    }
+                }
+                current.setDate(current.getDate() + 1);
+            }
+
+            if(createdCount > 0) { sortDays(); renderAllDays(); }
+            else { daysData.forEach(d => refreshVisuals(d.id)); }
+
+            saveDaysToFirebase();
+            closeModal('scheduleModal');
+            showToast("¡Programación lista!");
+        }
+
+        // --- CONFIGURACIÓN ---
+        function openSettingsModal() {
+            renderCatList();
+            document.getElementById('settingsModal').style.display = 'flex';
+        }
+        function renderCatList() {
+            const div = document.getElementById('catListRender');
+            div.innerHTML = '';
+            categories.forEach((c, i) => {
+                div.innerHTML += `<div class="config-list-item"><div class="cat-info"><div class="cat-color-dot" style="background:${c.color}; color:${c.color}"></div><span style="color:#fff;">${c.name}</span></div><div><button class="cat-btn btn-sec" style="border:1px solid rgba(255,255,255,0.2); color:white;" onclick="openActivityManager('${c.id}')">✏️</button><button class="cat-btn btn-del" onclick="deleteCat(${i})">🗑</button></div></div>`;
             });
-            openEditModal();
+        }
+        function addCategory() {
+            const n = document.getElementById('newCatName').value.trim();
+            const c = document.getElementById('newCatColor').value;
+            if(!n) return;
+            categories.push({ id: 'c_'+Date.now(), name: n, color: c, activities: [] });
+            document.getElementById('newCatName').value = '';
+            localStorage.setItem('cd_categories', JSON.stringify(categories));
+            renderCatList();
+        }
+        function deleteCat(i) {
+            if(confirm("¿Eliminar categoría?")) { categories.splice(i, 1); localStorage.setItem('cd_categories', JSON.stringify(categories)); renderCatList(); }
+        }
+
+        function openActivityManager(catId) {
+            currentEditingCatId = catId;
+            const cat = categories.find(c => c.id === catId);
+            document.getElementById('actModalTitle').innerText = `Actividades: ${cat.name}`;
+            renderActivityList();
+            document.getElementById('activityModal').style.display = 'flex';
+        }
+        function renderActivityList() {
+            const cat = categories.find(c => c.id === currentEditingCatId);
+            const list = document.getElementById('activityListRender');
+            list.innerHTML = '';
+            (cat.activities || []).forEach((act, i) => {
+                list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05);"><span style="color:#ddd;">${act}</span><span style="color:var(--danger); cursor:pointer;" onclick="delActivity(${i})">×</span></div>`;
+            });
+        }
+        function addActivity() {
+            const val = document.getElementById('newActName').value.trim();
+            if(!val) return;
+            const cat = categories.find(c => c.id === currentEditingCatId);
+            if(cat) { if(!cat.activities) cat.activities=[]; cat.activities.push(val); document.getElementById('newActName').value=''; localStorage.setItem('cd_categories', JSON.stringify(categories)); renderActivityList(); }
+        }
+        function delActivity(idx) {
+            const cat = categories.find(c => c.id === currentEditingCatId);
+            if(cat) { cat.activities.splice(idx, 1); localStorage.setItem('cd_categories', JSON.stringify(categories)); renderActivityList(); }
+        }
+
+        // --- EVENTOS (CRÍTICOS) ---
+        function openCountdownModal() { document.getElementById('countdownModal').style.display = 'flex'; }
+        function addCountdown() {
+            const n = document.getElementById('cdName').value;
+            const d = document.getElementById('cdDate').value;
+            if(!n || !d) return;
+            events.push({ name: n, date: d });
+            localStorage.setItem('cd_events', JSON.stringify(events));
+            renderCountdowns();
+            closeModal('countdownModal');
+            document.getElementById('cdName').value = '';
+        }
+        function renderCountdowns() {
+            const list = document.getElementById('countdownList');
+            list.innerHTML = '';
+            const now = new Date();
+            events.sort((a,b) => new Date(a.date) - new Date(b.date));
+            
+            let visibleCount = 0;
+            const maxVisible = 4;
+
+            for (let i = 0; i < events.length; i++) {
+                if(visibleCount >= maxVisible) break;
+                const ev = events[i];
+                const target = new Date(ev.date);
+                const diffMs = target - now;
+                if (diffMs < 0) continue;
+
+                const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                const diffSecs = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+                const fmt = (n) => n < 10 ? '0'+n : n;
+                let timeStr = `${diffDays}d ${fmt(diffHours)}:${fmt(diffMins)}:${fmt(diffSecs)}`;
+
+                let urgencyClass = "";
+                if (diffDays < 3) urgencyClass = "urgent-red";
+
+                const div = document.createElement('div');
+                div.className = `cd-card ${urgencyClass}`;
+                div.innerHTML = `<div class="cd-info"><div class="cd-title">${ev.name}</div><div class="cd-time">${timeStr}</div></div><div class="cd-del" onclick="removeEvent(${i})">×</div>`;
+                list.appendChild(div);
+                visibleCount++;
+            }
+        }
+        function removeEvent(i) {
+            if(confirm("¿Borrar evento?")) { events.splice(i, 1); localStorage.setItem('cd_events', JSON.stringify(events)); renderCountdowns(); }
+        }
+
+        // --- SYNC ---
+        function loadDaysFromFirebase() {
+            userDocRef.get().then(doc => {
+                if(doc.exists && doc.data() && doc.data().days) { daysData = doc.data().days; sortDays(); renderAllDays(); } else { renderAllDays(); }
+            });
+        }
+        function saveDaysToFirebase() {
+            userDocRef.set({ days: daysData, lastUpdate: new Date() }, { merge: true });
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById("toast"); t.innerText = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2500);
         }
 
         init();
